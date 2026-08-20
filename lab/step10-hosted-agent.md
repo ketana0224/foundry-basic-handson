@@ -38,7 +38,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 > **（重要）** これらはすべて **PyPI の安定版**です。`--pre` も `agent-framework-foundry-hosting` も不要です。
 
 ## 事前準備
-- **Azure Developer CLI（azd）1.27.1 以上**。`azd ai agent` コマンド群が使えること（`azd version` で確認）。**VS Code の Foundry Toolkit 拡張機能は不要**です（本手順は CLI だけで完結します）。
+- **Azure Developer CLI（azd）1.27.1 以上**。`azd ai agent` コマンド群が使えること（`azd version` で確認）。**VS Code の Foundry Toolkit 拡張機能は今回は使いません**（本手順は CLI だけで完結します）。
 - **Python 3.11 以上**（GA ランタイムのビルドに使用）。
 - **既存の Foundry プロジェクトに対して `Foundry Project Manager` ロール**を持っていること（Hosted Agent の登録＝データプレーン操作に必要）。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定するため、`azd provision` は**新規プロジェクトを作らず既存プロジェクトへ接続するだけ**になります（詳細は C 節参照）。
 - **Azure へのサインイン**（未サインインの場合）。`azd`・`az` はいずれも Azure 認証が必要です。まず次でサインインしておきます（ブラウザーが開きます）:
