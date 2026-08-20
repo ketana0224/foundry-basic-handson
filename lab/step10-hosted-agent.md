@@ -117,6 +117,14 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 ### B. `main.py` と `requirements.txt` を GA 版に差し替える
 ひな形の中身をこのハンズオンの GA 構成に置き換えます。**この B 節では `azure.yaml` は触りません**（エントリ ポイント `python main.py` と `responses` プロトコル 2.0.0 はそのままで動きます。`azure.yaml` の編集は C 節で行います）。
 
+0. **VS Code で生成フォルダーを開く。** 以降の編集をしやすくするため、init で作られたフォルダーを VS Code で開きます。
+
+   ```powershell
+   code $env:USERPROFILE\AIFoundryProjects\agent-framework-agent-basic-responses
+   ```
+
+   > **（メモ）** テンプレートが異なる場合はフォルダー名も変わります（例: `agent-framework-agent-basic-responses`）。`azure.yaml` がルートに見えるフォルダーを開いてください。既に開いている VS Code に追加したい場合は **［ファイル］→［フォルダーをワークスペースに追加］** でも構いません。
+
 1. **`requirements.txt`** を次の内容で**丸ごと上書き**する。
 
    ```text
