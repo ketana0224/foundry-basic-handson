@@ -90,10 +90,11 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    |---|---|---|---|
    | 1 | **Select a language** | **Python**（↑↓ で選び Enter） | もう一方は C#。本手順は Python 前提。 |
    | 2 | **Select a starter template** | **Basic agent (Responses, Agent Framework, Python)** | `responses` プロトコル 2.0.0 の最小構成。一覧には `Agent with Local Tools` / `Agent with MCP Tools` / `Basic agent (Invocations, …)` / `Note-taking agent (…without a framework…)` などもあるが、**`Basic agent (Responses, Agent Framework, Python)`** を選ぶ。 |
-   | 3 | プロジェクト／フォルダー名 | 既定のままでOK（例: `my-agent-xxxx`） | 任意で変更可。 |
-   | 4 | 環境設定（Environment） | **Skip / 最小** | デプロイ時に Foundry が環境変数を自動注入するため、ここでは接続不要。 |
+   | 3 | **Select a Foundry project to host your agent** | **Use an existing Foundry project** | 本ハンズオンは**既存の共有 Foundry プロジェクト**を使うため、`Create a new Foundry project` ではなく **`Use an existing Foundry project`** を選ぶ。続けて表示される一覧から**共有プロジェクト（例: `proj-foundryobs-jyenh`）を選択**する。 |
 
-   > **（なぜこれか）** 最小構成で `azure.yaml`（`responses` プロトコル 2.0.0）とプロジェクト構造が生成されるため。**このひな形から `main.py` と `requirements.txt` を GA 版に差し替えて使います。** `azure.yaml` は C 節で既存プロジェクト接続用に 1 か所だけ編集します（`ai-project` に `endpoint` を追加）。
+   > **（フォルダー名について）** テンプレート選択後、`azd` は**テンプレート名のフォルダー**を自動作成します（フォルダー名は聞かれません）。例: `Basic agent (Responses, Agent Framework, Python)` を選ぶと `…\AIFoundryProjects\agent-framework-agent-basic-responses\` が作られ、そこへ一式がコピーされます。
+   >
+   > **（なぜこれか）** 最小構成で `azure.yaml`（`responses` プロトコル 2.0.0）とプロジェクト構造が生成されるため。**このひな形から `main.py` と `requirements.txt` を GA 版に差し替えて使います。** 手順 3 で**既存プロジェクトを選ぶ**とエンドポイント接続が構成されますが、`azure.yaml` は念のため C 節でも接続用に確認・編集します（`ai-project` に `endpoint` を追加）。
    >
    > **（重要・複数受講者の一意名）** 本ハンズオンは **user01〜user11 が同一の共有 Foundry プロジェクト**を使います。Hosted Agent は **`azure.yaml` のサービス名がそのまま共有プロジェクト上のエージェント名**になるため、**既定名のままだと受講者どうしで衝突・上書き**します。Step 3 / Step 4 と同様に、**自分の番号（`userNN`）を含めて一意化**してください（次の C 節でサービス名を変更します）。
 
@@ -278,7 +279,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    ```powershell
    # ひな形のルート（azure.yaml がある階層）へ移動
-   cd $env:USERPROFILE\AIFoundryProjects\my-agent-xxxx   # 生成されたフォルダー名に置き換え
+   cd $env:USERPROFILE\AIFoundryProjects\agent-framework-agent-basic-responses   # 生成されたフォルダー名（テンプレート名）に置き換え
    azd env new handson-hosted-userNN                        # userNN は自分の番号（例: handson-hosted-user01）
    ```
 
