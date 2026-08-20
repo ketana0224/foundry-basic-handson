@@ -89,6 +89,8 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    | 環境設定（Environment） | **Skip / 最小** | デプロイ時に Foundry が環境変数を自動注入するため、ここでは接続不要。 |
 
    > **（なぜこれか）** 最小構成で `azure.yaml`（`responses` プロトコル 2.0.0）とプロジェクト構造が生成されるため。**このひな形から `main.py` と `requirements.txt` を GA 版に差し替えて使います。** `azure.yaml` は C 節で既存プロジェクト接続用に 1 か所だけ編集します（`ai-project` に `endpoint` を追加）。
+   >
+   > **（重要・複数受講者の一意名）** 本ハンズオンは **user01〜user11 が同一の共有 Foundry プロジェクト**を使います。Hosted Agent は **`azure.yaml` のサービス名がそのまま共有プロジェクト上のエージェント名**になるため、**既定名のままだと受講者どうしで衝突・上書き**します。Step 3 / Step 4 と同様に、**自分の番号（`userNN`）を含めて一意化**してください（次の C 節でサービス名を変更します）。
 
 4. 生成物を確認する。**ルートに `azure.yaml`**、コードは **`src\<テンプレート名>\`** の下にあります（例: `src\agent-framework-agent-basic-responses\` の `main.py` / `requirements.txt`）。以降このフォルダーで作業します。
 
@@ -272,7 +274,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    ```powershell
    # ひな形のルート（azure.yaml がある階層）へ移動
    cd c:\GitHub\Foundry_basic_Handson\my-agent-xxxx   # 生成されたフォルダー名に置き換え
-   azd env new handson-hosted
+   azd env new handson-hosted-userNN                    # userNN は自分の番号（例: handson-hosted-user01）
    ```
 
 3. **プロジェクト エンドポイントとモデル デプロイ名を設定**する。
@@ -316,10 +318,12 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
      ai-project:
        host: azure.ai.project
        endpoint: ${FOUNDRY_PROJECT_ENDPOINT}
-     agent-framework-agent-basic-responses:
+     agent-basic-responses-userNN:   # ← userNN は自分の番号（例: agent-basic-responses-user01）。共有プロジェクトでの衝突を避ける
        host: azure.ai.agent
        # ...（以降はそのまま）
    ```
+
+   > **（重要・エージェント名の一意化）** `azure.ai.agent` の**サービス名（キー）が、共有プロジェクト上のエージェント名**になります。ひな形の既定名（例: `agent-framework-agent-basic-responses`）のままだと他の受講者と衝突するため、上のように **`userNN` を含む一意名にリネーム**してください（英小文字・数字・`-` のみ）。
 
    > **（なぜ）** `azure.ai.project` の `endpoint` を設定すると、`azd` は**新規プロジェクトを作らず、その既存プロジェクトへ接続**します（省略すると新規作成）。私が以前案内した `AZURE_AI_PROJECT_ID` の `azd env set` は **この `azure.yaml` からは参照されない**ため効きません。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/azure-yaml-reference>
    >
