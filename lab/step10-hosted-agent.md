@@ -86,6 +86,8 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    azd auth login
    ```
 
+   > **（サブスクリプション選択）** サインイン後にサブスクリプションを選ぶ画面が出たら、末尾が **`-1`** のもの（例: `ME-M365CPI…-ketana-1`）を選択してください。
+
 3. ひな形を生成する。
 
    ```powershell
@@ -98,7 +100,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    |---|---|---|---|
    | 1 | **Select a language** | **Python**（↑↓ で選び Enter） | もう一方は C#。本手順は Python 前提。 |
    | 2 | **Select a starter template** | **Basic agent (Responses, Agent Framework, Python)** | `responses` プロトコル 2.0.0 の最小構成。一覧には `Agent with Local Tools` / `Agent with MCP Tools` / `Basic agent (Invocations, …)` / `Note-taking agent (…without a framework…)` などもあるが、**`Basic agent (Responses, Agent Framework, Python)`** を選ぶ。 |
-   | 3 | **Agent name**（`Enter a name for your agent` 等） | **`agent-framework-agent-basic-responses-userNN`**（`userNN` は自分の番号。例 `…-user02`） | **★最重要★** 既定値は **`agent-framework-agent-basic-responses`** ですが、**そのまま Enter せず**、末尾に自分の番号を付けて一意化します。**ここで入力した名前が、フォルダー名・`azure.yaml` のサービス名・そして Foundry ポータルに登録される<u>エージェント名</u>すべてになります**。本ハンズオンは11人が**同一の共有プロジェクト**を使うため、既定名のままだと**受講者どうしで衝突・上書き**します。<br>※ `azd` の版によってはこのプロンプトの**表示位置が前後**したり、**表示されない**ことがあります。表示されなかった場合はフォルダー名＝エージェント名（既定 `agent-framework-agent-basic-responses`）になるので、**C 節 C3 で `azure.yaml` のサービス名を `…-userNN` にリネーム**して一意化してください。 |
+   | 3 | **Agent name**（`Enter a name for your agent` 等） | **`agent-framework-agent-basic-responses-userNN`**（`userNN` は自分の番号。例 `…-user02`） | **★最重要★** 既定値は **`agent-framework-agent-basic-responses`** ですが、**そのまま Enter せず**、末尾に自分の番号を付けて一意化します。**ここで入力した名前が、フォルダー名・`azure.yaml` のサービス名・そして Foundry ポータルに登録される<u>エージェント名</u>すべてになります**。本ハンズオンは11人が**同一の共有プロジェクト**を使うため、既定名のままだと**受講者どうしで衝突・上書き**します。<br>※ **現行の `azd` 版では、この「Agent name」プロンプトは表示されないことがよくあります**（出るのは一部の版のみ／表示位置が前後することもあります）。**表示されなくても問題ありません。** その場合はフォルダー名＝エージェント名（既定 `agent-framework-agent-basic-responses`）になるので、**あとで C 節 C3 で `azure.yaml` のサービス名を `…-userNN` にリネーム**して一意化すれば同じ結果になります（むしろこちらが確実な方法です）。 |
    | 4 | **Select a Foundry project to host your agent** | **Use an existing Foundry project** | 本ハンズオンは**既存の共有 Foundry プロジェクト**を使うため、`Create a new Foundry project` ではなく **`Use an existing Foundry project`** を選ぶ。続けて表示される一覧から**共有プロジェクト（例: `proj-foundryobs-jyenh`）を選択**する。 |
    | 5 | **How would you like to proceed?**（モデルの取り扱い） | **Skip this model entirely (remove from azure.yaml)** | ひな形の `azure.yaml` は既定で `gpt-5.4-mini` の**新規モデルデプロイ**を作ろうとしますが、共有プロジェクトには**既に `gpt-5.4-mini` がデプロイ済み**です。受講者11人が各自新規モデルを作ると**クォータ枯渇・重複**になるため、**`Skip this model entirely (remove from azure.yaml)`** を選んで `azure.yaml` からモデル定義を外します（モデル名は次の順6で指定）。`Deploy as specified` / `Choose a different model` は新規デプロイになるので**選ばない**。 |
    | 6 | **Enter a value for AZURE_AI_MODEL_DEPLOYMENT_NAME:** | **`gpt-5.4-mini`**（手入力して Enter） | 順5でモデルを Skip すると、init の最後に `azure.yaml` が参照する環境変数の値を聞かれます。**共有プロジェクトに実在するデプロイ名**（本ハンズオンでは `gpt-5.4-mini`）を手入力します。デプロイ名は Foundry ポータルの **「モデル + エンドポイント」→「デプロイ済みモデル」** タブの「名前」列で確認できます。 |
@@ -252,9 +254,11 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 4. `.env` に接続情報を設定する（ローカル起動時のみ必要。Hosted デプロイ時は Foundry が自動注入するため不要）。
 
    ```ini
-   FOUNDRY_PROJECT_ENDPOINT=<Foundry プロジェクトのエンドポイント>
-   AZURE_AI_MODEL_DEPLOYMENT_NAME=<Step 2 で使ったモデル デプロイ名>
+   FOUNDRY_PROJECT_ENDPOINT=https://foundryobsjyenh.services.ai.azure.com/api/projects/proj-foundryobs-jyenh
+   AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5.4-mini
    ```
+
+   > **（そのままコピペ可）** 上の値は本ハンズオンの共有プロジェクト（`proj-foundryobs-jyenh`）用です。**そのままコピペ**して使えます。別プロジェクトを使う場合のみ、下記「各値を Foundry ポータルで確認する手順」で自分の値に置き換えてください。エンドポイントのホストは**カスタム サブドメイン**（`foundryobsjyenh…`）です（`aif-foundryobs-jyenh…` は DNS 解決できないので使わない）。
 
    > **（重要）** `main.py` の先頭で `load_dotenv()` を呼んでいるため、この `.env` は **`main.py` と同じフォルダー**に置きます。置き忘れると起動時に `KeyError: 'FOUNDRY_PROJECT_ENDPOINT'` で落ちます。`.env` を使わず、その場のシェルに直接設定してもかまいません（例: `$env:FOUNDRY_PROJECT_ENDPOINT = "..."`）。
 

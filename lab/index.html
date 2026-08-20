@@ -826,6 +826,10 @@ Rubric 評価器を使うと、「ポリシー遵守」「ツールの使い方�
 
 > **この Step は「発展・任意」です。** これまで作った Agent を、Microsoft 365 Copilot や Microsoft Teams の中から呼び出せるように**公開（Publish）**します。追加の RBAC（Azure Bot Service 作成権限）や、組織公開の場合は**管理者承認**が必要になるため、権限が足りない場合は読み物として理解するだけでも構いません。時間が押している場合はこの Step を飛ばして Step 10 — Hosted Agent デプロイ または Step 11 — クリーンアップ に進んでください。**必須パスにはこの Step を含みません。**
 
+> **⚠️（重要）この Step は `proj-default-swedencentral` プロジェクトで実施してください。** 他の Step で使っているプロジェクト（East US 2 リージョン）は **Microsoft 365 / Teams への公開が未サポート**で、公開ダイアログが「初期化に失敗しました」でエラーになります。公開対応リージョンの **`proj-default-swedencentral`（Sweden Central）** でエージェントを作成・公開してください。
+>
+> **プロジェクトの切り替え方**: ポータル左上の **「Microsoft Foundry /」の右にあるプロジェクト名をクリック**し、一覧から **`proj-default-swedencentral`** を選択します。
+
 ## 目的
 Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッジ・トレース・評価まで体験しました。この Step では、その Agent を **Microsoft 365 Copilot と Microsoft Teams に公開**し、利用者が**普段使っているツールの中から Agent を発見して会話できる**状態にするフローを体験します。
 
@@ -880,6 +884,7 @@ Foundry のエージェントは、次の **2 通り**で Agent 365 とつなが
 > **（推測）** ハンズオン用テナントでは Agent 365 のサブスクライブ（M365 Copilot ライセンス等）が無い場合が多く、その場合レジストリ同期や条件付きアクセスは体験できません。ここでは「公開すると ID とガバナンスがこう連動する」という**概念の理解**までを到達目標とします。
 
 ## 事前準備
+- **この Step は `proj-default-swedencentral`（Sweden Central）プロジェクトで実施すること**（他リージョンは M365 / Teams 公開が未サポート）。ポータル左上の **「Microsoft Foundry /」の右のプロジェクト名をクリック**して `proj-default-swedencentral` に切り替える。
 - Step 3〜5 で作成し、**動作確認済みの Agent**（`handson-agent-<自分の名前>`）があること。
 - 公開したい **アクティブ バージョン**が選択されていること（既定は「常に最新を使用（Always use latest）」で可）。
 - 次のロールを持っていること:
@@ -935,7 +940,7 @@ Foundry のエージェントは、次の **2 通り**で Agent 365 とつなが
 3. （任意）マニフェストを配布前に調整したい場合は、**Download & customize** から Teams アプリ マニフェスト（`.zip`）を取得できる。
 
 ### E. 動作を確認する
-1. **Just you** の場合: Microsoft 365 Copilot / Teams のエージェント ストアの **Your agents** に自分の Agent が表示される。開いて質問し、応答を確認する。
+1. **Just you** の場合: **Microsoft 365 Copilot（<https://m365.cloud.microsoft/chat/>）** を開き、エージェント ストアの **Your agents** に自分の Agent が表示されることを確認する。開いて質問し、応答を確認する。
 2. **組織全体**の場合: 管理者承認後に **Built by your org** に表示される。承認状況は [Microsoft 365 管理センター](https://admin.cloud.microsoft/?#/agents/all/requested) の **Requests** で確認できる。
 
 ## 時間が足りないとき（最小構成）
