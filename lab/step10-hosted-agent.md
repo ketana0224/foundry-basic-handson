@@ -4,7 +4,7 @@
 
 ---
 
-> **この Step は「発展・任意」です。** ここまでのハンズオンは **ポータル UI のみ** で完結しますが、本 Step だけは **VS Code とコード（azd/SDK）** を使う発展課題です。時間が押している場合や、まずはノーコードの流れを一通り体験したい場合は、この Step を飛ばして [Step 11 — クリーンアップ](step11-cleanup.md) に進んで構いません。**必須パス（約180分）はこの Step を含みません。**
+> **この Step は「発展・任意」です。** ここまでのハンズオンは **ポータル UI のみ** で完結しますが、本 Step だけは **コマンドライン（azd CLI）とコード** を使う発展課題です。時間が押している場合や、まずはノーコードの流れを一通り体験したい場合は、この Step を飛ばして [Step 11 — クリーンアップ](step11-cleanup.md) に進んで構いません。**必須パス（約180分）はこの Step を含みません。**
 
 > **（この版について）** 本 Step は **一般提供（GA）の `azure-ai-agentserver-responses`（2.0.0 以上）** だけで Hosted Agent を構成します。プレビュー専用パッケージ（`agent-framework-foundry-hosting` など）や `pip install --pre` は **使いません**。GA パッケージのみで Playground / SDK / Teams から呼び出せる Agent を作ります。
 
@@ -38,11 +38,10 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 > **（重要）** これらはすべて **PyPI の安定版**です。`--pre` も `agent-framework-foundry-hosting` も不要です。
 
 ## 事前準備
-- **VS Code** と **Foundry Toolkit 拡張機能**（プレリリース チャネル）。取得: <https://aka.ms/foundrytk>
-- **Azure Developer CLI（azd）1.27.1 以上**。
+- **Azure Developer CLI（azd）1.27.1 以上**。`azd ai agent` コマンド群が使えること（`azd version` で確認）。**VS Code の Foundry Toolkit 拡張機能は不要**です（本手順は CLI だけで完結します）。
 - **Python 3.11 以上**（GA ランタイムのビルドに使用）。
 - **既存の Foundry プロジェクトに対して `Foundry Project Manager` ロール**を持っていること（Hosted Agent の登録＝データプレーン操作に必要）。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定するため、`azd provision` は**新規プロジェクトを作らず既存プロジェクトへ接続するだけ**になります（詳細は C 節参照）。
-- **Azure へのサインイン**（未サインインの場合）。VS Code の Foundry Toolkit デプロイ・`azd`・`az` はいずれも Azure 認証が必要です。まず次でサインインしておきます（ブラウザーが開きます）:
+- **Azure へのサインイン**（未サインインの場合）。`azd`・`az` はいずれも Azure 認証が必要です。まず次でサインインしておきます（ブラウザーが開きます）:
 
   ```powershell
   az login
@@ -58,26 +57,42 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
   > **（注）** これはサブスクリプション レベルの操作です。**共有ハンズオン環境では管理者が登録済み**のため、参加者は実行不要（権限が無い場合はスキップして構いません）。
 
-> **（推測）** 拡張機能はプレビュー段階のため、メニュー名やコマンド名は更新されることがあります。表示が異なる場合は近い名称を探してください。
+> **（注）** `azd ai agent` はプレビュー段階のため、対話プロンプトの文言や選択肢名は更新されることがあります。表示が異なる場合は近い名称を選んでください。
 
-## 手順（VS Code Foundry Toolkit を使う推奨フロー）
+## 手順（azd CLI を使うフロー）
 
-### A. Agent プロジェクトのひな形を用意する
-1. VS Code で作業用フォルダーを開く。
-2. コマンド パレット（`Ctrl+Shift+P`）を開き、**`Foundry Toolkit: Create new Hosted Agent`** を実行する（`azd ai agent init` 相当）。
-3. **Agent Details** でテンプレートを選ぶ。このハンズオンでは **Basic Hosted Agent**（Python / Responses API）を選ぶ。
+### A. Agent プロジェクトのひな形を用意する（`azd ai agent init`）
+1. ターミナル（PowerShell）で作業用フォルダーへ移動する。
 
-   > **（なぜこれか）** 追加のツールや外部接続を必要としない最小構成で、`azure.yaml`（`responses` プロトコル 2.0.0）とプロジェクト構造が生成されるため。**このひな形から `main.py` と `requirements.txt` を GA 版に差し替えて使います。** `azure.yaml` は C 節で既存プロジェクト接続用に 1 か所だけ編集します（`ai-project` に `endpoint` を追加）。
+   ```powershell
+   cd c:\GitHub\Foundry_basic_Handson
+   ```
 
-4. **Next** → **Create** に進み、**Create Hosted Agent from Sample** 画面で次のとおり設定してひな形を生成する。
+2. azd で Azure にサインインする（未サインインの場合。ブラウザーが開きます）。
 
-   | 項目 | 設定値（このハンズオン） | 補足 |
+   ```powershell
+   azd auth login
+   ```
+
+3. ひな形を生成する。
+
+   ```powershell
+   azd ai agent init
+   ```
+
+   対話プロンプトで次のとおり選ぶ（文言は版により多少変わります）。
+
+   | プロンプト | 選ぶ値（このハンズオン） | 補足 |
    |---|---|---|
-   | **Workspace Folder** | 作業用フォルダー（例: `c:\GitHub\Foundry_basic_Handson`） | この直下にプロジェクト フォルダーが作成される。 |
-   | **Folder Name** | 自動入力のままでOK（例: `my-agent-xxxx`） | プロジェクト フォルダー名。任意で変更可。 |
-   | **Environment Setup** | **Skip for now** | まずコードだけ生成する。デプロイ時に Foundry が環境変数を自動注入するため、ここでは接続不要。 |
+   | テンプレート | **Basic Hosted Agent**（Python / Responses API） | 追加ツール不要の最小構成。`azure.yaml`（`responses` プロトコル 2.0.0）と一式が生成される。 |
+   | プロジェクト／フォルダー名 | 既定のままでOK（例: `my-agent-xxxx`） | 任意で変更可。 |
+   | 環境設定（Environment） | **Skip / 最小** | デプロイ時に Foundry が環境変数を自動注入するため、ここでは接続不要。 |
 
-5. **Create** を押すと、`Project will be created at:` に表示されたパスにひな形が生成される。生成された `main.py` / `requirements.txt` は **`src\<テンプレート名>\`** の下にあります（例: `src\agent-framework-agent-basic-responses\`）。以降このフォルダーで作業します。
+   > **（なぜこれか）** 最小構成で `azure.yaml`（`responses` プロトコル 2.0.0）とプロジェクト構造が生成されるため。**このひな形から `main.py` と `requirements.txt` を GA 版に差し替えて使います。** `azure.yaml` は C 節で既存プロジェクト接続用に 1 か所だけ編集します（`ai-project` に `endpoint` を追加）。
+
+4. 生成物を確認する。**ルートに `azure.yaml`**、コードは **`src\<テンプレート名>\`** の下にあります（例: `src\agent-framework-agent-basic-responses\` の `main.py` / `requirements.txt`）。以降このフォルダーで作業します。
+
+   > **（参考・VS Code 派の人へ）** VS Code の Foundry Toolkit 拡張機能の **`Create new Hosted Agent`** も内部で `azd ai agent init` を実行するだけなので、生成物は同じです。拡張機能を入れている場合はそちらの GUI から作ってもかまいません（本手順は CLI で統一します）。
 
 ### B. `main.py` と `requirements.txt` を GA 版に差し替える
 ひな形の中身をこのハンズオンの GA 構成に置き換えます。**この B 節では `azure.yaml` は触りません**（エントリ ポイント `python main.py` と `responses` プロトコル 2.0.0 はそのままで動きます。`azure.yaml` の編集は C 節で行います）。
@@ -240,7 +255,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
 ### C. Hosted Agent としてデプロイする
 
-> **⚠️ このハンズオン環境について** 本ハンズオン環境は **プライベート ネットワーク構成**のため、**VS Code Foundry Toolkit の「Deploy Hosted Agent」ボタンからのデプロイは失敗します**（`*.api.azureml.ms` を名前解決できず `fetch failed` になる）。そのため、デプロイは **`azd` CLI** で行います（下記）。VS Code の Deploy ボタンは、社内 DNS 制約の無い通常環境向けの手順です。
+> **⚠️ このハンズオン環境について** 本ハンズオン環境は **プライベート ネットワーク構成**のため、**VS Code Foundry Toolkit の「Deploy Hosted Agent」ボタン（GUI）からのデプロイは失敗します**（`*.api.azureml.ms` を名前解決できず `fetch failed` になる）。本手順の **`azd` CLI** デプロイなら問題ありません。
 
 デプロイは `azd` を使います。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定すると、**`azd provision` は新規プロジェクトを作らず既存プロジェクトへ接続**します。その後 `azd deploy` で Hosted Agent を登録します。
 
@@ -334,7 +349,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    デプロイ後は **Foundry ポータルの Playground** からも同じ Hosted Agent を選んで会話できます。
 
-> **（参考）`azd ai agent init` について** VS Code の **`Create new Hosted Agent`** は内部的に `azd ai agent init` を実行してひな形を作ります。CLI だけで完結させたい場合は、任意のフォルダーで `azd ai agent init` を実行してテンプレートを選び、生成された `main.py` / `requirements.txt` を **B 節と同じ GA 版に差し替え**、`azure.yaml` の `ai-project` に `endpoint` を設定してから `azd provision` → `azd deploy` してください。
+> **（補足）** ここまでが CLI だけで完結する Hosted Agent デプロイの全体像です（`azd ai agent init` → `main.py`/`requirements.txt` を GA 版へ → `azure.yaml` の `ai-project` に `endpoint` を設定 → `azd provision` → `azd deploy`）。
 
 ## トラブルシュート
 
@@ -377,8 +392,8 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 ## 時間が足りないときは
 デプロイまで到達できなくても問題ありません。**「コードで書いた Agent を GA パッケージだけで Hosted に載せられる」** という流れを理解できれば十分です。ローカルの `python main.py` + `curl POST /responses` で疎通確認できたら、この Step のねらいは達成です。
 
-## メニュー名・画面が違うときは
-Foundry Toolkit / azd はいずれもプレビュー〜更新が続いており、メニュー名やオプション名が変わることがあります。表示が異なる場合は近い名称（`Create ... Hosted Agent` / `Deploy ...` / `azd ai agent ...`）を探してください。コア概念（**GA ランタイム `azure-ai-agentserver-responses` を、`ai-project` の `endpoint` で既存プロジェクトへ接続し `azd provision` → `azd deploy` で登録**）は同じです。
+## メニュー名・プロンプトが違うときは
+`azd`（特に `azd ai agent`）はプレビュー〜更新が続いており、対話プロンプトの文言や選択肢名が変わることがあります。表示が異なる場合は近い名称（`azd ai agent init` / `azd provision` / `azd deploy`）を選んでください。コア概念（**GA ランタイム `azure-ai-agentserver-responses` を、`ai-project` の `endpoint` で既存プロジェクトへ接続し `azd provision` → `azd deploy` で登録**）は同じです。
 
 ## 完了チェック
 - [ ] `requirements.txt` を GA 版（`azure-ai-agentserver-responses>=2.0.0`）に差し替えた。
