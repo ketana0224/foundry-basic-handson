@@ -334,6 +334,9 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    ```yaml
    services:
+     agent-framework-agent-basic-responses:
+       host: azure.ai.agent
+       # ...（以降はそのまま）
      ai-project:
        host: azure.ai.project
        deployments:
@@ -345,21 +348,18 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
            sku:
              name: GlobalStandard
              capacity: 10
-     agent-framework-agent-basic-responses:
-       host: azure.ai.agent
-       # ...（以降はそのまま）
    ```
 
    変更後:
 
    ```yaml
    services:
-     ai-project:
-       host: azure.ai.project
-       endpoint: ${FOUNDRY_PROJECT_ENDPOINT}
      agent-basic-responses-userNN:   # ← userNN は自分の番号（例: agent-basic-responses-user01）。共有プロジェクトでの衝突を避ける
        host: azure.ai.agent
        # ...（以降はそのまま）
+     ai-project:
+       host: azure.ai.project
+       endpoint: ${FOUNDRY_PROJECT_ENDPOINT}
    ```
 
    > **（重要・エージェント名の一意化）** `azure.ai.agent` の**サービス名（キー）が、共有プロジェクト上のエージェント名**になります。ひな形の既定名（例: `agent-framework-agent-basic-responses`）のままだと他の受講者と衝突するため、上のように **`userNN` を含む一意名にリネーム**してください（英小文字・数字・`-` のみ）。
