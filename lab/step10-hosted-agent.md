@@ -62,11 +62,15 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 ## 手順（azd CLI を使うフロー）
 
 ### A. Agent プロジェクトのひな形を用意する（`azd ai agent init`）
-1. ターミナル（PowerShell）で作業用フォルダーへ移動する。
+1. ターミナル（PowerShell）で**自分用の作業フォルダーを新規作成**して移動する。
 
    ```powershell
-   cd c:\GitHub\Foundry_basic_Handson
+   # 空の作業フォルダーを作って移動（フォルダー名は任意）
+   mkdir $env:USERPROFILE\AIFoundryProjects -Force
+   cd $env:USERPROFILE\AIFoundryProjects
    ```
+
+   > **（注意）** このハンズオン文書のリポジトリ（`…\Foundry_basic_Handson` など）の**中では `init` しない**でください。`azd ai agent init` はカレント フォルダーに `azure.yaml` や `src\` を生成するため、**空の専用フォルダー**で行うのが安全です。
 
 2. azd で Azure にサインインする（未サインインの場合。ブラウザーが開きます）。
 
@@ -273,8 +277,8 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    ```powershell
    # ひな形のルート（azure.yaml がある階層）へ移動
-   cd c:\GitHub\Foundry_basic_Handson\my-agent-xxxx   # 生成されたフォルダー名に置き換え
-   azd env new handson-hosted-userNN                    # userNN は自分の番号（例: handson-hosted-user01）
+   cd $env:USERPROFILE\AIFoundryProjects\my-agent-xxxx   # 生成されたフォルダー名に置き換え
+   azd env new handson-hosted-userNN                        # userNN は自分の番号（例: handson-hosted-user01）
    ```
 
 3. **プロジェクト エンドポイントとモデル デプロイ名を設定**する。
