@@ -262,15 +262,6 @@ azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME gpt-5-mini
 azd env get-values                                                # 3 つの値が既存プロジェクトを指しているか確認
 ```
 
-> **★ モデル デプロイ名（`AZURE_AI_MODEL_DEPLOYMENT_NAME`）は必須です。**
-> Toolkit の Create agent 画面（環境変数）でこの欄が**空だと、Hosted Agent が使うモデルが決まらず動きません**。**このプロジェクトに存在する既存のチャット モデルの「デプロイ名」**を入れてください（このハンズオンでは **`gpt-5-mini`**）。埋め込み用（`text-embedding-*`）は**チャット エージェントには使えません**。
->
-> **利用可能なデプロイ名の調べ方:**
-> ```powershell
-> az cognitiveservices account deployment list -n <account> -g <rg> --query "[].{name:name, model:properties.model.name}" -o table
-> ```
-> 表示された `name`（デプロイ名）のうち、チャット モデル（`gpt-*` など）を選びます。
-
 > **★★ 最重要：エンドポイントのホスト名は「リソース名」ではなく「カスタム サブドメイン」を使う ★★**
 > Foundry（Cognitive Services）アカウントは、**アカウント リソース名**と**データプレーンのカスタム サブドメイン**が**異なる**ことがあります。`azd deploy` はエンドポイントの**ホスト名をそのまま DNS で解決**するため、リソース名を使うと `dial tcp: lookup ...: no such host`（名前解決失敗）で失敗します。
 >
@@ -350,47 +341,54 @@ Toolkit を使わずゼロから CLI で作りたい場合は、空フォルダ�
 
 > **（注）** 片付け時は `azd down` で作成したリソースを削除できます。詳細は [Step 11 — クリーンアップ](step11-cleanup.md) を参照。
 
-## トラブルシュート：デプロイは成功するが Playground 実行時に失敗する
+## トラブルシュート：デプロイまわりで失敗する
 
-`azd deploy` が成功し、コンテナの起動チェック（readiness）も 200 なのに、**Playground から質問を送ると実行時に失敗する**ことがあります。ログには次のような特徴が出ます。
+### 症状 A：起動できない（`ModuleNotFoundError: No module named 'agent_framework_foundry_hosting'`）
 
-- `Creating response ... store=True`（応答生成時の store フラグが True）
-- `Resilient task subsystem missing in hosted environment ...`（＝これが致命的エラー本体）
-- `ModuleNotFoundError: No module named 'agents'`（← これは **無害**。任意の A365 OpenAI Agents 計装が無いだけで、失敗原因ではない）
-
-### 原因：`requirements.txt` 未固定が beta 版ランタイムを引き込む
-
-ホスティング パッケージ `agent-framework-foundry-hosting`（最新 `1.0.0b260813`）は、依存として **`azure-ai-agentserver-core >=2.1.0b1` / `azure-ai-agentserver-responses >=2.1.0b1`（beta 版）を強制**します。`requirements.txt` を**バージョン未固定**にしていると、リモート ビルドの `pip install --pre` が必ずこの **2.1.0b* beta** を取得します。この beta 版には、hosted 環境で `store=True` の応答経路に入ると **resilient task subsystem が未プロビジョニングでも参照してしまい落ちる**回帰があります。
-
-> **（注意）`main.py` の `default_options={"store": False}` では直りません。** これは **エージェント→モデル クライアント（`FoundryChatClient`）呼び出しの既定値**であり、**Foundry ホスト側 Responses エンドポイントの store フラグ（Playground 既定 = True）とは別レイヤー**です。そのためコードを `store=False` にしても、ログには `store=True` が出続けます。
-
-### 対処：GA（安定版）に固定して再デプロイ
-
-`requirements.txt` を GA `2.0.0` 系に固定し、beta を引き込まないようにします。
+Playground が `session_not_ready`（`/readiness` が 200 にならない）になり、ログ末尾に次が出る:
 
 ```text
-agent-framework-core
-agent-framework-foundry
-azure-ai-agentserver-core==2.0.0
-azure-ai-agentserver-responses==2.0.0
-azure-identity
-python-dotenv
+File "/app/main.py", line 7, in <module>
+  from agent_framework_foundry_hosting import ResponsesHostServer
+ModuleNotFoundError: No module named 'agent_framework_foundry_hosting'
 ```
 
-> **（注）** `agent-framework-foundry-hosting` の**最新版（`1.0.0b260813`）は `>=2.1.0b1` を要求するため GA 2.0.0 と両立しません**。hosting を使う場合は、GA `azure-ai-agentserver-*==2.0.0` と依存解決できる**古い hosting 版に固定**するか、hosting を外して `ResponsesHostServer` 相当を直接構成してください（版ごとの依存は `pip index versions` 等で確認）。
+**原因:** `requirements.txt` に **`agent-framework-foundry-hosting`（＝`main.py` が import する `agent_framework_foundry_hosting` モジュールの提供元）が入っていない**。この 1 行が欠けると、他がすべて正しくてもコンテナは起動できません。
 
-固定したら再デプロイします。
+**対処:** `requirements.txt` に `agent-framework-foundry-hosting` を含める。動作する最小構成は次のとおり:
+
+```text
+agent-framework-foundry
+agent-framework-foundry-hosting
+azure-identity
+python-dotenv
+debugpy
+```
+
+> **（重要）`azure-ai-agentserver-core` / `azure-ai-agentserver-responses` を手でバージョン固定しないこと。** これらは `agent-framework-foundry-hosting` が**依存として自動で解決**します。`agent-framework-foundry-hosting`（最新 `1.0.0b260813`）は **`azure-ai-agentserver-core >=2.1.0b1` / `-responses >=2.1.0b1`（beta 版）を要求**するため、`==2.0.0`（GA）を手で固定すると依存解決が衝突し、インストール失敗やモジュール欠落を招きます（＝症状 A の再発）。
+
+修正後、`requirements.txt` の変更で確実に再ビルドが走ります:
 
 ```powershell
 azd deploy
 ```
 
-> **（重要）** `azd deploy` はコード無変更だと **no-op（コンテナ非再起動）**になることがあります。`requirements.txt` の変更が確実にリモート ビルド＆新コンテナ起動を起こすことを確認してください（起きない場合は `main.py` に微小な変更マーカーを入れて強制ビルドします）。
+### 症状 B：起動は成功するが Playground 実行時に失敗する（`store=True` / `Resilient task subsystem missing`）
+
+`/readiness` は 200 だが、質問を送ると実行時に落ちる。ログに `Creating response ... store=True` と `Resilient task subsystem missing in hosted environment ...` が出る。
+
+**背景（事実）:** 上記のとおり `agent-framework-foundry-hosting` は **beta 版の `azure-ai-agentserver-*`（>=2.1.0b1）を要求**します。リモート ビルドの `pip install --pre` はこの beta を取得します。**agentserver を GA `2.0.0` に手で固定して回避することはできません**（hosting が `>=2.1.0b1` を要求するため。前述の症状 A を招く）。
+
+> **（注意）`main.py` の `default_options={"store": False}` では直りません。** これは **エージェント→モデル クライアント（`FoundryChatClient`）呼び出しの既定値**であり、**Foundry ホスト側 Responses エンドポイントの store フラグ（Playground 既定 = True）とは別レイヤー**です。コードを `store=False` にしても、ログには `store=True` が出続けます。
+
+**対処（推測を含む）:** これはランタイム（agentserver beta 版）側の挙動なので、ハンズオンの範囲では次のいずれかで切り分けます。
+- `agent-framework-foundry-hosting` を**明示的に別バージョンへ固定**して、依存する agentserver の組み合わせを変える（版ごとの依存は `pip index versions agent-framework-foundry-hosting` 等で確認）。
+- 事象が再現する場合は、正確なエラー文言（`azd ai agent monitor --follow` で取得）を添えて Issue（<https://github.com/microsoft/agent-framework/issues>）に報告する。
 
 ### 切り分けのコツ
-- **正確なエラー文言を先に確定する:** `azd ai agent monitor --follow`（または `--tail <N>`）でコンテナ ログを取得し、致命的エラーが `Resilient task subsystem ...` か、それとも 4xx/5xx かをロックしてから requirements を変更する。
-- `ModuleNotFoundError: No module named 'agents'` は無視してよい（A365 計装が無いだけ）。
-- ログの `model=`（空）は **応答生成時の 1 フィールドで表示上の問題**。モデルは `FoundryChatClient` に埋め込まれているので、起動時に `model_name` 環境変数が未設定なら例外で落ちる＝起動できている時点でモデルは設定済み。
+- **正確なエラー文言を先に確定する:** `azd ai agent monitor --follow`（または `--tail <N>`）でコンテナ ログを取得し、`ModuleNotFoundError`（症状 A・起動失敗）か `Resilient task subsystem ...`（症状 B・実行時失敗）かを最初にロックする。
+- `ModuleNotFoundError: No module named 'agents'`（末尾が `agents`）は **無害**（任意の A365 計装が無いだけ）。`agent_framework_foundry_hosting`（症状 A）とは別物なので混同しない。
+- ログの `model=`（空）は **応答生成時の 1 フィールドで表示上の問題**。モデルは `FoundryChatClient` に埋め込まれているので、起動できている時点でモデルは設定済み。
 
 ## 時間が足りないとき（最小構成）
 - 本 Step は**任意**です。デプロイまで行わず、**「Hosted Agent とは何か（マネージドにコードを公開する仕組み）」** を読んで理解するだけでも目的は達成できます。

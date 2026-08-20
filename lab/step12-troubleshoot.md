@@ -34,8 +34,9 @@
 - **トレースが出ない** → 反映に数秒〜数十秒。少し待って再読み込み。
 
 ### Hosted Agent（Step 10・発展）
-- **デプロイは成功するのに Playground 実行時に失敗する**（ログに `store=True` / `Resilient task subsystem missing ...`）→ `requirements.txt` 未固定でホスティングが **beta 版 `azure-ai-agentserver-*` 2.1.0b\*** を引き込むのが原因。GA `==2.0.0` に固定して再デプロイする。詳細は [Step 10 のトラブルシュート](step10-hosted-agent.md#トラブルシュートデプロイは成功するが-playground-実行時に失敗する) を参照。
-- `ModuleNotFoundError: No module named 'agents'` は**無害**（任意の A365 計装が無いだけ）。`main.py` の `default_options={"store": False}` は別レイヤーの既定値で、この失敗は直らない。
+- **起動できない**（`session_not_ready` ＋ ログに `ModuleNotFoundError: No module named 'agent_framework_foundry_hosting'`）→ `requirements.txt` に **`agent-framework-foundry-hosting` が入っていない**のが原因。この行を追加して再デプロイする。**`azure-ai-agentserver-*` を `==2.0.0` に手で固定しないこと**（hosting が `>=2.1.0b1` を要求し衝突する）。詳細は [Step 10 のトラブルシュート](step10-hosted-agent.md#症状-a起動できないmodulenotfounderror-no-module-named-agent_framework_foundry_hosting) を参照。
+- **起動は成功するが Playground 実行時に失敗する**（ログに `store=True` / `Resilient task subsystem missing ...`）→ hosting が要求する beta 版 `azure-ai-agentserver-*`（2.1.0b\*）側の挙動。GA `==2.0.0` への固定では回避できない（hosting と両立不能）。詳細は [Step 10 のトラブルシュート](step10-hosted-agent.md#症状-b起動は成功するが-playground-実行時に失敗するstoretrue--resilient-task-subsystem-missing) を参照。
+- `ModuleNotFoundError: No module named 'agents'`（末尾が `agents`）は**無害**（任意の A365 計装が無いだけ）。`agent_framework_foundry_hosting`（起動失敗）とは別物。`main.py` の `default_options={"store": False}` は別レイヤーの既定値で、この失敗は直らない。
 
 ## 発展課題（時間が余ったら）
 1. instructions を工夫して、回答の丁寧さ・出典明示のルールを強化する。
