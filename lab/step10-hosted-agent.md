@@ -301,7 +301,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    azd env new handson-hosted-userNN                        # userNN は自分の番号（例: handson-hosted-user01）
    ```
 
-2. **サブスクリプション・リージョン・プロジェクト エンドポイント・モデル デプロイ名を設定**する。
+2. **サブスクリプション・リージョン・プロジェクト ID・エンドポイント・モデル デプロイ名を設定**する。
 
    ```powershell
    # サブスクリプション ID（空の環境には入っていないので必須）
@@ -310,6 +310,9 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    # リージョン（既存プロジェクトのリージョンに合わせる。例: eastus2）
    azd env set AZURE_LOCATION "eastus2"
 
+   # プロジェクトのリソース ID（Hosted Agent の登録先。endpoint だけでは解決できないので必須）
+   azd env set AZURE_AI_PROJECT_ID "/subscriptions/<サブスクリプション ID>/resourceGroups/<RG名>/providers/Microsoft.CognitiveServices/accounts/<アカウント名>/projects/<プロジェクト名>"
+
    # プロジェクト エンドポイント（カスタム サブドメイン ホストであること）
    azd env set FOUNDRY_PROJECT_ENDPOINT "https://<カスタムサブドメイン>.services.ai.azure.com/api/projects/<プロジェクト名>"
 
@@ -317,7 +320,9 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME "gpt-5.4-mini"
    ```
 
-   > **（重要・空環境の落とし穴）** 手順 1 の `azd env new` は**空の新規環境**を作ります。`AZURE_SUBSCRIPTION_ID` と `AZURE_LOCATION` が入っていないと、後続の `azd up`/`azd deploy` が `ERROR: AZURE_SUBSCRIPTION_ID is required: environment variable was not found in the current azd environment` で失敗します。**必ず上記 4 つをすべて設定**してください（`azd env get-values` で現在値を確認できます）。
+   > **（重要・空環境の落とし穴）** 手順 1 の `azd env new` は**空の新規環境**を作ります。`AZURE_SUBSCRIPTION_ID` がないと `ERROR: AZURE_SUBSCRIPTION_ID is required ...`、`AZURE_AI_PROJECT_ID` がないと `ERROR: Microsoft Foundry project ID is required: AZURE_AI_PROJECT_ID is not set` で `azd up` が失敗します。**必ず上記 5 つをすべて設定**してください（`azd env get-values` で現在値を確認できます）。
+   >
+   > **（`AZURE_AI_PROJECT_ID` の形式）** `/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<アカウント>/projects/<プロジェクト>` です。値が不明なときは Foundry ポータルのプロジェクト概要、または `az cognitiveservices account show` で確認できます。
 
    > **（重要・エンドポイントの落とし穴）** `FOUNDRY_PROJECT_ENDPOINT` のホストは **カスタム サブドメイン**（例: `foundryobsjyenh.services.ai.azure.com`）である必要があります。**リソース名そのまま**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）だと DNS 解決できず失敗します。ポータルの「プロジェクト エンドポイント」に表示される値をそのまま使ってください。
 
@@ -359,7 +364,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    > **（重要・エージェント名の一意化）** `azure.ai.agent` の**サービス名（キー）が、共有プロジェクト上のエージェント名**になります。ひな形の既定名（例: `agent-framework-agent-basic-responses`）のままだと他の受講者と衝突するため、上のように **`userNN` を含む一意名にリネーム**してください（英小文字・数字・`-` のみ）。
 
-   > **（なぜ）** `azure.ai.project` の `endpoint` を設定すると、`azd` は**新規プロジェクトを作らず、その既存プロジェクトへ接続**します（省略すると新規作成）。私が以前案内した `AZURE_AI_PROJECT_ID` の `azd env set` は **この `azure.yaml` からは参照されない**ため効きません。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/azure-yaml-reference>
+   > **（なぜ）** `azure.ai.project` の `endpoint` を設定すると、`azd` は**新規プロジェクトを作らず、その既存プロジェクトへ接続**します（省略すると新規作成）。ただし **Hosted Agent の登録先を確定させるには、手順 2 で設定した `AZURE_AI_PROJECT_ID`（プロジェクトのリソース ID）が必要**です（`endpoint` だけでは `azd up` が `AZURE_AI_PROJECT_ID is not set` で止まります）。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/azure-yaml-reference>
    >
    > **（`deployments` を残す場合）** 既存プロジェクトの `gpt-5.4-mini` に合わせるなら、`name` / `model.name` を `gpt-5.4-mini`、`version` を実デプロイのバージョンに合わせます。バージョンが不明なときは削除版が確実です。
 
@@ -386,7 +391,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    デプロイ後は **Foundry ポータルの Playground** からも同じ Hosted Agent を選んで会話できます。
 
-> **（補足）** ここまでが CLI だけで完結する Hosted Agent デプロイの全体像です（`azd ai agent init` → `main.py`/`requirements.txt` を GA 版へ → `azure.yaml` の `ai-project` に `endpoint` を設定 → 環境変数（`AZURE_SUBSCRIPTION_ID`/`AZURE_LOCATION`/`FOUNDRY_PROJECT_ENDPOINT`/`AZURE_AI_MODEL_DEPLOYMENT_NAME`）を設定 → `azd up`）。
+> **（補足）** ここまでが CLI だけで完結する Hosted Agent デプロイの全体像です（`azd ai agent init` → `main.py`/`requirements.txt` を GA 版へ → `azure.yaml` の `ai-project` に `endpoint` を設定 → 環境変数（`AZURE_SUBSCRIPTION_ID`/`AZURE_LOCATION`/`AZURE_AI_PROJECT_ID`/`FOUNDRY_PROJECT_ENDPOINT`/`AZURE_AI_MODEL_DEPLOYMENT_NAME`）を設定 → `azd up`）。
 
 ## トラブルシュート
 
@@ -421,9 +426,9 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 - **原因**: `main.py` と `requirements.txt` が zip ルート（`azure.yaml` が参照するサービス ディレクトリ）に無い、または対象モデルが未デプロイ。
 - **対処**: `main.py` / `requirements.txt` がサービス ディレクトリ直下にあること、モデル デプロイが存在することを確認して再実行。
 
-### 症状 E: `ERROR: AZURE_SUBSCRIPTION_ID is required: environment variable was not found in the current azd environment`
-- **原因**: `azd env new` で作った**空の新規環境**にサブスクリプション/リージョン情報が入っていない。
-- **対処**: C 節の手順 2 で `AZURE_SUBSCRIPTION_ID` と `AZURE_LOCATION` を `azd env set` する（サブスクリプション ID は `az account show --query id -o tsv` で取得）。`azd env get-values` で四つ（`AZURE_SUBSCRIPTION_ID`/`AZURE_LOCATION`/`FOUNDRY_PROJECT_ENDPOINT`/`AZURE_AI_MODEL_DEPLOYMENT_NAME`）が入っていることを確認してから `azd up`。
+### 症状 E: `ERROR: AZURE_SUBSCRIPTION_ID is required ...` / `ERROR: Microsoft Foundry project ID is required: AZURE_AI_PROJECT_ID is not set`
+- **原因**: `azd env new` で作った**空の新規環境**にサブスクリプション/リージョン/プロジェクト ID が入っていない。
+- **対処**: C 節の手順 2 で `AZURE_SUBSCRIPTION_ID` / `AZURE_LOCATION` / `AZURE_AI_PROJECT_ID` を `azd env set` する。`AZURE_AI_PROJECT_ID` は `/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<アカウント>/projects/<プロジェクト>` 形式。`azd env get-values` で 5 つ（上記＋`FOUNDRY_PROJECT_ENDPOINT`/`AZURE_AI_MODEL_DEPLOYMENT_NAME`）が入っていることを確認してから `azd up`。
 
 ### 症状 F: `azd deploy` が `ERROR: infrastructure has not been provisioned`（`azd provision` は成功しているのに）
 - **原因**: 既存プロジェクト接続（bicep-less）では `azd provision` は一瞬で終わり（`provisioned ... in less than a second`）、provision と deploy を**別々に**実行すると完了状態が記録されず deploy が誤判定する。
