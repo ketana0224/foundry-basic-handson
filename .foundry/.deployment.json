@@ -1,0 +1,12 @@
+{
+  "projectId": "0160bc94-3e31-4edf-8243-32221c624ce2",
+  "hostedAgentDeployOptions": {
+    "deploymentMethod": "zip",
+    "zipPackageMode": "remote",
+    "zipRuntime": "python_3_14",
+    "zipEntryPoint": [
+      "python3",
+      "my-agent-9sp4ue/src/agent-framework-agent-basic-responses/main.py"
+    ]
+  }
+}

@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microsoft Foundry 初学者向け 180分ハンズオン</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root{
+    --sidebar-w: 320px;
+    --brand: #0f6cbd;
+    --brand-dark: #0a4d86;
+    --bg: #f3f5f7;
+    --panel: #ffffff;
+    --text: #1b1b1b;
+    --muted: #5f6b7a;
+    --border: #e2e6ea;
+    --code-bg: #f6f8fa;
+    --accent: #e7f1fb;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; height:100%; }
+  body{
+    font-family: "Segoe UI", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ===== 左: タイトル一覧 ===== */
+  #sidebar{
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  #sidebar .brand{
+    padding: 18px 20px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color:#fff;
+  }
+  #sidebar .brand h1{
+    font-size: 16px;
+    margin: 0 0 4px;
+    line-height: 1.4;
+  }
+  #sidebar .brand p{
+    font-size: 12px;
+    margin: 0;
+    opacity: .85;
+  }
+  #nav{
+    overflow-y: auto;
+    padding: 8px 0 24px;
+    flex: 1;
+  }
+  #nav .nav-item{
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 18px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  #nav .nav-item:hover{ background: var(--accent); }
+  #nav .nav-item.active{
+    background: var(--accent);
+    border-left-color: var(--brand);
+    font-weight: 600;
+    color: var(--brand-dark);
+  }
+  #nav .nav-item .badge{
+    flex: 0 0 auto;
+    min-width: 26px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    background: #eef1f4;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  #nav .nav-item.active .badge{ background: var(--brand); color:#fff; }
+  #nav .nav-item .opt{
+    display:inline-block;
+    font-size: 10px;
+    color:#b06a00;
+    background:#fff4e0;
+    border-radius:4px;
+    padding:1px 5px;
+    margin-left:4px;
+    vertical-align: middle;
+  }
+  #nav .sec-label{
+    padding: 14px 18px 4px;
+    font-size: 11px;
+    letter-spacing: .05em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* ===== 右: コンテンツ ===== */
+  #main{
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+  }
+  #content{
+    max-width: 860px;
+    width: 100%;
+    padding: 40px 48px 96px;
+  }
+  #content h1{ font-size: 26px; border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-top: 8px; }
+  #content h2{ font-size: 20px; margin-top: 34px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  #content h3{ font-size: 16px; margin-top: 26px; color: var(--brand-dark); }
+  #content p, #content li{ line-height: 1.75; font-size: 14.5px; }
+  #content a{ color: var(--brand); text-decoration: none; }
+  #content a:hover{ text-decoration: underline; }
+  #content code{
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-family: "Cascadia Code", Consolas, monospace;
+    font-size: 12.5px;
+  }
+  #content pre{
+    background: #1e1e1e;
+    color: #e6e6e6;
+    padding: 16px 18px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  #content pre code{ background: transparent; color: inherit; padding: 0; font-size: 12.5px; }
+  #content table{
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    font-size: 13.5px;
+  }
+  #content th, #content td{
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  #content th{ background: var(--accent); }
+  #content tr:nth-child(even) td{ background: #fafbfc; }
+  #content blockquote{
+    margin: 16px 0;
+    padding: 10px 18px;
+    border-left: 4px solid var(--brand);
+    background: #f0f6fc;
+    color: #33475b;
+    border-radius: 0 6px 6px 0;
+  }
+  #content blockquote p{ margin: 6px 0; }
+  #content details{
+    margin: 14px 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    background: var(--panel);
+  }
+  #content summary{ cursor: pointer; font-weight: 600; color: var(--brand-dark); }
+  #content img{ max-width: 100%; border: 1px solid var(--border); border-radius: 6px; margin: 10px 0; }
+  #content hr{ border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+  #content input[type=checkbox]{ margin-right: 6px; }
+
+  /* prev/next footer */
+  .pager{
+    display:flex; justify-content: space-between; gap:12px;
+    margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);
+  }
+  .pager button{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--brand-dark);
+    max-width: 48%;
+    text-align: left;
+  }
+  .pager button:hover:not(:disabled){ background: var(--accent); border-color: var(--brand); }
+  .pager button:disabled{ opacity: .35; cursor: default; }
+  .pager .nxt{ text-align: right; }
+
+  @media (max-width: 780px){
+    body{ flex-direction: column; overflow: auto; }
+    #sidebar{ width: 100%; min-width: 0; height: auto; }
+    #nav{ max-height: 40vh; }
+    #main{ height: auto; }
+    #content{ padding: 24px 18px 60px; }
+  }
+</style>
+</head>
+<body>
+  <aside id="sidebar">
+    <div class="brand">
+      <h1>Microsoft Foundry<br>初学者向け 180分ハンズオン</h1>
+      <p>Lab 目次 — 左のタイトルを選ぶと右に表示されます</p>
+    </div>
+    <nav id="nav"></nav>
+  </aside>
+
+  <main id="main">
+    <article id="content"></article>
+  </main>
+
+  <!-- ===== Markdown コンテンツ（各ステップ） ===== -->
+  <script type="text/markdown" id="README.md">
+# Microsoft Foundry 初学者向け 180分ハンズオン（Lab 目次）
+
+> 本ハンズオンは final-report.md の「初学者向け180分ハンズオン」スケジュールを、当日そのまま進行できる **ステップ別の Lab** に分割したものです。各 Lab の末尾から次の Lab へ進めます。
+>
+> - **対象**: Microsoft Foundry を初めて触る受講者
+> - **所要時間**: 180分（14ステップ + バッファ / Step 9（M365 公開）と Step 10（Hosted Agent）は発展・任意で必須パスには含まない）
+> - **ゴール**: ポータル上で単一 Agent を作成し、Web Search と Foundry IQ で根拠付き回答を行い、トレース閲覧・手動評価・Rubric 評価で運用の入口を体験する
+> - **使用サービス**: Microsoft Foundry ポータル / Foundry Agent Service（GA）
+> - **使用しないもの**: Assistants API（2026-08-26 廃止予定のため不使用）、SDK、正式 Evaluation、MCP/A2A の自作、ネットワーク分離
+
+---
+
+## 事実 / 推測の区別について
+
+各 Lab のうち、**製品仕様・公式ドキュメントに基づく記述は「事実」**、**当日の UI 操作フローやカリキュラム設計上の判断は「推測（設計判断）」** です。UI はアップデートで変わることがあるため、画面名やボタン名が一致しない場合は各 Lab の「UI が違うとき」と Step 12 トラブルバッファを参照してください。
+
+- （事実）Foundry Agent Service は GA。出典: <https://devblogs.microsoft.com/foundry/foundry-agent-service-ga/>
+- （事実）Assistants API は非推奨・2026-08-26 廃止予定。出典: <https://learn.microsoft.com/en-us/azure/foundry-classic/openai/concepts/assistants>
+- （事実）Web Search ツールが提供されている。出典: <https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/web-search>
+- （事実）Foundry IQ の概念。出典: <https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/what-is-foundry-iq>
+- （事実）Observability / トレース。出典: <https://learn.microsoft.com/en-us/azure/foundry/concepts/observability>
+
+---
+
+## Lab 一覧（タイムテーブル）
+
+| # | 時間 | 分 | Lab |
+|---|---|---:|---|
+| 0 | 0:00〜0:10 | 10 | [Step 0 — オリエンテーション](step00-orientation.md) |
+| 1 | 0:10〜0:30 | 20 | [Step 1 — サインイン・権限・プロジェクト確認](step01-signin.md) |
+| 2 | 0:30〜0:50 | 20 | [Step 2 — モデルとプレイグラウンド](step02-model-playground.md) |
+| 3 | 0:50〜1:15 | 25 | [Step 3 — 単一 Agent 作成（Web Search 既定有効）](step03-create-agent.md) |
+| — | 1:15〜1:25 | 10 | ☕ 休憩（Step 3 の末尾に記載） |
+| 4 | 1:25〜1:35 | 10 | [Step 4 — MCP サーバーの有効化・接続（事前準備済）](step04-mcp.md) |
+| 5 | 1:35〜1:50 | 15 | [Step 5 — Foundry IQ の有効化・接続（事前準備済）](step05-foundry-iq.md) |
+| 6 | 1:50〜2:00 | 10 | [Step 6 — トレース閲覧](step06-trace.md) |
+| 7 | 2:00〜2:10 | 10 | [Step 7 — 手動評価](step07-eval.md) |
+| 8 | 2:10〜2:25 | 15 | [Step 8 — Rubric 評価](step08-rubric.md) |
+| 9 | 2:25〜2:40 | 15 | [Step 9 — Microsoft 365 / Teams への公開（発展・任意）](step09-m365-publish.md) |
+| 10 | 2:40〜2:55 | 15 | [Step 10 — Hosted Agent デプロイ（発展・任意）](step10-hosted-agent.md) |
+| 11 | 2:55〜3:05 | 10 | [Step 11 — クリーンアップ](step11-cleanup.md) |
+| 12 | 3:05〜3:20 | 15 | [Step 12 — トラブルバッファ](step12-troubleshoot.md) |
+| 13 | 3:20〜3:25 | 5 | [Step 13 — まとめ](step13-summary.md) |
+
+➡️ **最初の Lab へ: [Step 0 — オリエンテーション](step00-orientation.md)**
+
+---
+
+## 講師向け 事前準備チェックリスト（当日までに完了）
+
+> **注**: MCP サーバーと Foundry IQ の構築手順は本ハンズオンとは別に案内されます。ここでは「用意済みであること」を確認します。
+
+- [ ] Azure サブスクリプションを用意し、受講者に必要な RBAC を付与済み（Foundry アカウント スコープに **Cognitive Services User** ロール。エージェント構築・モデル推論に必要な dataActions を含む）
+- [ ] Microsoft Foundry プロジェクトを作成済み（受講者ごと or 共有）
+- [ ] 利用するチャットモデル（例: GPT 系）をデプロイ済み、対象リージョンとクォータを確認済み
+- [ ] **Foundry IQ を事前構築済み**、Agent への接続情報（ナレッジソース名など）を控えてある
+- [ ] **MCP サーバーを事前構築済み**、Agent への接続情報（エンドポイント URL / 認証情報）を控えてある
+- [ ] トレース閲覧用のリソースとサンプルデータを準備済み
+- [ ] 受講者へ配布する「接続情報シート」（プロジェクト名・モデル名・IQ 接続名・MCP 接続情報）を用意
+
+### 受講者が当日持参・確認するもの
+
+- [ ] サインインに使う組織アカウント（Microsoft Entra ID）
+- [ ] ブラウザ（Microsoft Edge または Google Chrome の最新版）
+- [ ] 講師から配布された「接続情報シート」
+
+---
+
+## 付録
+
+- 受講者成果物・前提・参照元は Step 13 — まとめ の付録を参照してください。
+- 主要参照元:
+  - [What is Microsoft Foundry?](https://learn.microsoft.com/en-us/azure/foundry/what-is-foundry)
+  - [Foundry Agent Service overview](https://learn.microsoft.com/en-us/azure/foundry/agents/overview)
+  - [Web Search tool](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/web-search)
+  - [MCP tool](https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/model-context-protocol)
+  - [Foundry IQ](https://learn.microsoft.com/en-us/azure/foundry/agents/concepts/what-is-foundry-iq)
+  - [Observability](https://learn.microsoft.com/en-us/azure/foundry/concepts/observability)
+  </script>
+
+  <script type="text/markdown" id="step00-orientation.md">
+# Step 0 — オリエンテーション（10分 / 0:00〜0:10）
+
+## 目的
+本日のゴールと成果物、進め方を共有します。
+
+> 本ハンズオンは **新しい Foundry ポータル**（<https://ai.azure.com/>、右上の「新しい Foundry」トグルが **ON**）を前提に記載しています。上部メニューの **ビルド**（エージェント/モデル/ツール/ナレッジ 等）と **操作**（トレース）を中心に操作します。
+
+## 進め方（講師デモ + 説明）
+1. 本日のゴールを確認する: 「ポータル上で単一 Agent を作成し、Web Search と Foundry IQ で根拠付き回答を行い、トレース閲覧と手動評価で運用の入口を体験する」。
+2. 完成イメージを見せる: 「Agent に質問 → Foundry IQ の社内資料を根拠にして回答 → その裏側のトレースを確認 → 回答品質を評価」という一連の流れ。
+3. 本日の成果物を確認する:
+   - instructions を設定した単一 Agent
+   - Web Search / Foundry IQ を使った根拠付き回答
+   - 手動評価シート（正常例・失敗例・引用有無）
+   - トレース閲覧結果 1件以上
+   - クリーンアップ確認表
+4. 用語の最小限の整理:
+   - **プロジェクト**: Foundry の作業単位。
+   - **モデル**: 回答を生成する頭脳（例: GPT 系）。
+   - **Agent**: モデル + 指示（instructions）+ ツール（Web Search / Foundry IQ / MCP など）をまとめたもの。
+   - **ツール**: Agent が外部知識・機能にアクセスする手段。
+   - **トレース**: Agent の内部処理（どのツールを呼んだか等）の記録。
+
+## 完了チェック
+- [ ] 受講者全員が本日のゴールと成果物を言える状態
+  </script>
+
+  <script type="text/markdown" id="step01-signin.md">
+# Step 1 — サインイン・権限・プロジェクト確認（20分 / 0:10〜0:30）
+
+## 目的
+Foundry の作業環境にサインインし、権限とプロジェクトを確認します。
+
+## 手順
+1. ブラウザで Microsoft Foundry ポータルを開く。
+   - URL: <https://ai.azure.com/>
+   - 画面右上の **「新しい Foundry」トグルが ON** になっていることを確認する（本ハンズオンは新しい Foundry ポータルを使用）。
+2. 組織アカウント（Entra ID）でサインインする。
+3. サインイン後、上部左の **プロジェクト選択** （例: `proj-...`）から、配布された **プロジェクト名** を選んで開く。
+   - 一覧に表示されない場合は、右上のディレクトリ/テナントが正しいか確認する。
+4. 上部メニューの **ビルド** を開き、左メニューで以下を確認する:
+   - **モデル**: 使用するチャットモデルがデプロイ済みか（後の Step 2 で使用）
+   - **エージェント**: 既存エージェント一覧が見えるか（プロジェクトが正しいかの確認）
+5. 権限を確認する（自分のロール）。**ビルド → エージェント → 右上の「新しいエージェント」** が選べるかで、Agent 作成権限があるかを自分で確認する。
+   - 選べてエージェント作成画面に進めれば OK（**Cognitive Services User** ロールが Foundry アカウント スコープで付与されている状態）。
+   - 選べない/「権限がありません」と出る場合は講師に連絡する。
+   - 補足: 「Contributor」は管理プレーンのみで dataActions を含まず、「Azure AI User」はこのテナントに未展開のため、いずれもエージェント構築には不十分。
+
+## 完了チェック
+- [ ] 正しいプロジェクトを開けている
+- [ ] モデルがデプロイ済みであることを確認できた
+- [ ] Agent 作成メニューにアクセスできる
+
+## UI が違うとき
+- 右上の **「新しい Foundry」トグル** が OFF だと旧ポータル表示になる。本手順の画面名（ビルド/操作 タブ等）と合わない場合はトグルを ON にする。
+- サインイン直後に複数プロジェクトが出る場合は、接続情報シートの **プロジェクト名** で選択。
+- 「権限がありません」と出たら、Step 12 — トラブルバッファ で RBAC を確認。
+  </script>
+
+  <script type="text/markdown" id="step02-model-playground.md">
+# Step 2 — モデルとプレイグラウンド（20分 / 0:30〜0:50）
+
+## 目的
+モデルを選び、プレイグラウンドで基本応答を確認します（Agent を作る前にモデル単体の挙動を体験）。
+
+> 新しい Foundry のプレイグラウンドでは **Web 検索（Web Search）が既定で有効** な場合があります（左ペインの「ツール」に「Web 検索」が表示）。その場合、最新情報を尋ねても出典付きで回答されます。
+
+## 手順
+1. 上部メニューの **ビルド** を開き、左メニューから **モデル** を開く。
+2. デプロイ済みのチャットモデル（接続情報シート記載のモデル）を選ぶ。
+   - 新規に探す場合は上部 **検出** のモデルカタログから検索できる（今回はデプロイ済みを使用）。
+3. モデルを開き、**プレイグラウンド（チャット）** で試す。
+4. 左ペインの **ツール** を見、「Web 検索」が有効かどうかを確認する。
+5. 次の質問を入力して応答を確認する:
+   - 例1: 「あなたは何ができますか？簡潔に教えてください。」
+   - 例2: 「今日の東京の天気は？」
+     - **Web 検索が有効なら** → 最新天気を **出典（引用）付き** で回答することを確認。
+     - **素のモデルの限界を体験したい場合** → ツールの「Web 検索」を一旦 **オフ**（削除/無効化）にして同じ質問をすると、最新情報に答えられない（または古い）ことを確認できる。
+
+## 完了チェック
+- [ ] プレイグラウンドでモデルに質問し、応答を得られた
+- [ ] Web 検索の有効/無効で回答が変わる（最新情報・出典の有無）ことを理解した
+  </script>
+
+  <script type="text/markdown" id="step03-create-agent.md">
+# Step 3 — 単一 Agent 作成（25分 / 0:50〜1:15）
+
+## 目的
+instructions を設定した Agent を作成します。Foundry Agent Service では **Web Search が既定で有効** になる想定です（構成により異なる場合あり）。
+
+## 手順
+1. 上部メニュー **ビルド** → 左メニュー **エージェント** を開き、右上の **新しいエージェント** から **エージェントの構築** を選択する。
+2. 基本情報を設定する:
+   - **名前**: `handson-agent-<自分の名前>`（受講者ごとに一意にする）
+   - **モデル**: Step 2 で使ったチャットモデルを選択
+3. **指示（instructions）** を入力する。以下をベースに設定:
+   ```
+   あなたは社内向けアシスタントです。
+   - 回答は日本語で、簡潔かつ丁寧に。
+   - 事実に基づき、根拠がある場合は出典を必ず示してください。
+   - 分からないことは「分かりません」と正直に答え、推測で断定しないでください。
+   - 最新情報が必要な場合は Web Search を活用してください。
+   ```
+4. エージェント設定内の **ツール（Tools）** を確認する:
+   - **Web Search** が有効になっているか確認する（既定で有効の想定。無効なら「ツールの追加」から有効化する）。
+   - 出典: <https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/web-search>
+5. エージェントを保存する。
+6. エージェント詳細画面右側の **プレイグラウンド（テストチャット）** で動作確認:
+   - 質問例: 「Microsoft Foundry とは何か、簡単に教えてください。」
+   - 質問例（最新情報）: 「今日のニュースを教えて」
+7. 回答に出典（引用リンク）が付くかを確認する。
+
+## 完了チェック
+- [ ] instructions を設定した Agent を作成できた
+- [ ] Web Search の有効状態を確認できた
+- [ ] Agent に質問して回答を得られた
+- [ ] （可能なら）Web Search 由来の出典が回答に付いた
+
+## UI が違うとき
+- 「ツール」はエージェント詳細の設定ペイン内にある（左メニューの **ツール** はツール一覧の管理用）。
+- Web Search のトグルが見つからない場合は Step 12 — トラブルバッファ で確認。
+
+---
+
+## ☕ 休憩（10分 / 1:15〜1:25）
+
+次の Step 4 に進む前に、10分の休憩を取ります。
+  </script>
+
+  <script type="text/markdown" id="step04-mcp.md">
+# Step 4 — MCP サーバーの有効化・接続（20分 / 1:25〜1:45）
+
+> **📌 このステップで行うこと**
+> MCP サーバーへの接続を **自分で新規作成** します。
+> 下記のリモート MCP サーバー エンドポイントを指定し、**非認証** で接続します。
+
+## 目的
+リモート MCP（Model Context Protocol）サーバーへの接続を新規作成して Agent に追加し、外部ツール連携を体験します。
+
+## 手順
+1. 作成したエージェントを開き、設定ペインの **ツール（Tools）** を開く。
+2. **ツールの追加（Add tool）** から **MCP**（Model Context Protocol）を選択する。
+3. **モデル コンテキスト プロトコル ツールの追加** ダイアログで以下を入力し、**接続** を押す。
+   - **名前**: 一意の名前を指定。受講者どうしで重複しないよう、**自分のユーザー名を含める**（例: `edinet-mcp-user01` … `edinet-mcp-user11`。`userXX` は割り当てられた番号に置き換える）。
+   - **リモート MCP サーバー エンドポイント**:
+     ```
+     https://apim-aigateway-eastus2.azure-api.net/edinetdb/mcp
+     ```
+   - **認証**: 既定は **キーベース** ですが、ドロップダウンから **非認証** を選択する。
+     - ※ **非認証** を選ぶと **資格情報** の入力は不要になります（キーベースを選んだ場合のみキーと値のペアを入力）。
+   - （注）ダイアログ上部に「サード パーティのサービスは Microsoft 以外の製品」である旨の注意書きが表示されます。内容を確認して進めます。
+4. 接続後、エージェントが MCP ツールを認識しているか確認する。
+   - 追加した **MCP サーバー** の右側の **⋮（メニュー）→ 構成** を開く。
+   - 「このエージェントに対するこの MCP サーバーのツールの承認設定」で **すべてのツールを常に自動承認する** を選ぶ。
+   - ※ 既定は **ツールを自動承認しない** で、実行のたびに承認ダイアログが表示される。ハンズオンでは自動承認にしておくとスムーズ。
+   - 特定のツールだけ自動承認したい場合は **特定のツールを常に自動承認する** を選択する。
+5. MCP ツールを使う想定の質問を投げて動作を確認する:
+   - 例: 「トヨタ自動車の直近5年間の売上推移と収益性を分析して」
+   - 例: 「ROE15%以上、PBR1倍以下の割安高収益企業を探して」
+6. 回答に MCP ツールの利用結果が反映されているか観察する。
+
+> 参考リンク（EDINET DB）:
+> - [EDINET DB｜上場企業 約4645社の財務データ・有報全文 (無料 API/MCP) | EDINET DB](https://edinetdb.jp/)
+> - [上場企業 財務 API/MCP｜100 req/日 無料・登録 1 分で開始 | EDINET DB](https://edinetdb.jp/developers)
+> - [Microsoft Copilot StudioでEDINET DBを使う設定方法（MCPサーバー連携） | EDINET DB](https://edinetdb.jp/docs/connect-copilot-studio)
+
+## 完了チェック
+- [ ] リモート MCP サーバーへの接続を新規作成し、Agent に追加できた
+- [ ] MCP ツールを使う質問で応答を得られた
+
+## UI が違うとき
+- MCP ツールが追加できない場合は、エンドポイント URL の綴りと末尾 `/mcp` を確認。
+- 認証エラーが出たら Step 12 — トラブルバッファ を参照。
+  </script>
+
+  <script type="text/markdown" id="step05-foundry-iq.md">
+# Step 5 — Foundry IQ で根拠付き回答（25分 / 1:45〜2:10）
+
+> **📌 事前準備済みの前提**
+> Foundry IQ のナレッジ（インデックス化された社内資料・ナレッジソース）は **講師側で事前準備済み** です。
+> 本ステップでは「準備済みのナレッジを Agent に**接続して根拠付き回答をさせる**」ことだけを行います。
+> ナレッジソース／インデックスの作り方は **別途案内** します。
+
+## 目的
+事前準備済みの Foundry IQ ナレッジを Agent に接続し、社内資料を根拠にした回答（グラウンディング）を体験します。
+
+## 手順
+1. エージェントの設定ペインで **ナレッジ（Knowledge）** を開く。
+   - 上部 **ビルド** → 左メニュー **ナレッジ** でナレッジ一覧を確認できる（ハンズオンでは右クリック-新しいウィンドウで開くで確認してください）
+   - 一覧画面で **「検索サービスのセットアップに失敗しました（Azure AI Search サービスをプロビジョニングできませんでした）」** というバナーが出ることがある。これは Foundry IQ が**プロジェクト専用の Azure AI Search を新規に自動作成しようとして失敗している**メッセージ。本ハンズオンでは **既存の Azure AI Search を使う**ため新規作成は不要で、このバナーは **想定内なので無視してよい**。
+2. エージェントの構築にある**ナレッジ**の **追加**（追加 ∨）を開く。
+3. **使用可能なナレッジ ベース** の一覧から、事前準備済みの **kb-custom-index-ir**（企業の IR・統合報告書の情報）を選ぶ。
+   - 一覧には `kb-custom-index-ir`（`srch-ketana-prod-centralus - kb-kb-custom-index-ir-rhdhy`）が表示される想定。表示されない場合は **Foundry IQ に接続する** を選び、講師に確認。
+4. ナレッジ検索を優先させるため、エージェントの **指示（Instructions）** を以下に書き換える:
+
+   ```text
+   あなたは社内向けアシスタントです。
+   - 回答は日本語で、簡潔かつ丁寧に。
+   - 事実に基づき、根拠がある場合は出典を必ず示してください。
+   - 分からないことは「分かりません」と正直に答え、推測で断定しないでください。
+   - ナレッジ検索を優先して、有効な回答が無い場合のみWeb Search を活用してください。
+   ```
+
+5. エージェントを保存する。
+6. ナレッジに含まれる内容について質問し、根拠付き回答を確認する:
+
+   **簡単な質問**
+   - 東急不動産の社内ベンチャー制度の名前は？
+     - 期待回答：STEP
+   - 2023年で即席めんの一人当たりの年間消費量が最も多い国はどこか。
+     - 期待回答：ベトナム
+
+   **複雑な質問（組み合わせ質問）**
+   - 2023年の即席めんの一人当たりの年間消費量が最も大きい国と日本の差分は何食か。
+     - 期待回答：34.0食
+   - 株式会社キッツの2023年度売上高構成比が2番目に高い事業の製造・販売会社を全て上げよ。（回答には株式会社も含めること）
+     - 期待回答：株式会社キッツメタルワークス、北東技研工業株式会社
+7. 回答に **出典（引用）** が付くことを確認する。
+8. あえて **ナレッジに含まれない質問** も投げ、挙動を観察する。
+   - このナレッジは公開されている以下企業の統合報告書で構成されています:
+     - 4℃-IR-Report2024_rev2.pdf
+     - GRORY-IR-2024-RSaj.pdf
+     - IHI Integrated Report2024_open.pdf
+     - KAGOME-IR-2024-2811_20240328561431_P01_.pdf
+     - Kitz_Corporate_Report_2024_J_A4_single.pdf
+     - NISSAN-サステナビリティRep-DB24_J_All.pdf
+     - suntory_csr_2024.pdf
+     - クルハ-sustainability2024.pdf
+     - ハウス食品-integrated_report2024.pdf
+     - パナソニック-サステナビリティRep-sdb2024j.pdf
+     - メディアドゥ-IR-2024-00.pdf
+     - モス-IR-2024-mos_csr24_all.pdf
+     - ライフ-IR-2024.1.pdf
+     - 高松コンストラクション-IR-2024-20240829094903482s.pdf
+     - 全国保証株式会社-IR-2024-00.pdf
+     - 東急不動産-IR-2024-lpXq.pdf
+     - 東洋エンジニアリング-IR-2024-TOYO_IR2024_Ja-compressed.pdf
+     - 日清食品-IR-2024-integrated_report_2024.pdf
+     - 明治-IR-2024-integratedreports-integrated_reports_2024_ja_all.pdf
+9. **講師にて Foundry IQ を単独実行する。** 別サブスクリプションの Foundry IQ で、簡単な質問と複雑な質問を実行して結果を確認する。
+
+## 完了チェック
+- [ ] 事前準備済みの Foundry IQ ナレッジを Agent に接続できた
+- [ ] 社内資料を根拠にした回答（出典付き）を得られた
+
+## UI が違うとき
+- 「ナレッジ」がエージェント設定内で見つからない場合は、**ツール** 内に統合されていることがある。
+- 出典が付かない場合は Step 12 — トラブルバッファ を確認。
+  </script>
+
+  <script type="text/markdown" id="step06-trace.md">
+# Step 6 — トレース閲覧（15分 / 2:30〜2:45）
+
+## 目的
+Agent の内部処理（どのツールを呼び、どんな入出力だったか）をトレースで確認し、運用・デバッグの入口を体験します。
+
+## 手順
+1. 上部メニュー **操作** を開き、**トレース（Observability / Tracing）** 画面を開く。
+   - エージェント詳細ページ上部の「トレース」リンクからも開ける。
+   - 出典: <https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/observability>
+2. 直前の Step 5 で投げた質問に対応するトレースを1件開く。
+3. トレースの中身を確認する:
+   - どのツール（Web Search / Foundry IQ / MCP）が呼ばれたか
+   - ツールへの入力・出力
+   - 各処理にかかった時間
+4. **正常例**と**失敗例**のトレースを見比べ、失敗の原因（ツール未使用・検索ヒットなし等）を推測する。
+
+## 完了チェック
+- [ ] トレースを1件以上開いて中身を確認できた
+- [ ] どのツールが呼ばれたかを読み取れた
+- [ ] 失敗例のトレースから原因を推測できた（あれば）
+
+## UI が違うとき
+- トレースが表示されるまで数秒〜数十秒かかる場合がある。
+- 表示されない場合は Step 12 — トラブルバッファ を確認。
+  </script>
+
+  <script type="text/markdown" id="step07-eval.md">
+# Step 7 — 評価（15分 / 2:00〜2:10）
+
+## 目的
+プレイグラウンドに組み込まれた **評価メトリクス（評価器）** を使い、Agent の回答品質を数値で可視化します。人手の主観評価ではなく、Foundry が用意した評価器（Evaluator）で自動採点する体験がゴールです。
+
+## 事前準備
+- Step 5 の Agent（`handson-agent-xxx`）をプレイグラウンドで開いておく。評価は「評価器を選んだ後に送信した新しい応答」に対して行われるため、質問はこの Step のなかで送信します。
+
+## 手順
+
+### A. クイック評価（チャットしながら即採点）
+1. プレイグラウンドの **チャット** タブを開く。
+2. 右上の **メトリクス** ▼ をクリックし、**クイック評価メトリクス** パネルを開く。
+3. 採点したい評価器（Evaluator）にチェックを入れる。まずは以下の **品質系** から始めるのがおすすめ:
+   - **タスク遵守**: 指示（instructions）どおりに振る舞えているか
+   - **意図の解決**: ユーザーの質問意図に答えられているか
+   - **一貫性**: 回答内容に矛盾がないか
+   - **流暢性**: 自然な日本語の品質・読みやすさ
+   - **関連度**: 質問に対して回答が的を射ているか
+4. 必要に応じて **安全性系** の評価器も確認する（Content Safety 相当）:
+   - 自傷行為 / ヘイトと不公平性 / 暴力 / 性的なコンテンツ / 間接攻撃 / コードの脆弱性
+5. 評価器を選んだ状態で、**チャットで質問を送信する**（評価は選択後の新しい応答に対して行われます）。
+   - 例: 「2023年の即席めんの一人当たりの年間消費量が最も大きい国と日本の差分は何食か。」
+6. 応答が返ると、チェックした評価器の採点結果（スコア）が表示されるので、値と理由を確認する。
+7. スコアが低い項目があれば、**なぜ低いのか**をトレース（Step 6）と合わせて考察する。
+
+<details>
+<summary>📋 実行例（クリックして開く）— 「即席めんの消費量の差分」を評価した結果</summary>
+
+![評価結果の例](../image/eval01.png)
+
+> 評価の理由（Reasoning）は英語で表示されます。以下は日本語訳の例です。
+
+**コヒーレンス（一貫性）｜合格｜5点中4点**
+> RESPONSE は QUERY が求める情報を論理的に提示できており、データ間のつながりが明確で構造化されている。消費量の差分という問いに直接答えており、理解しやすい。
+
+**流暢性｜合格｜5点中3点**
+> 回答は一貫しており必要な情報を明確に伝えているが、複雑さや語彙のバリエーションに乏しい。理解はできるが、（評価上）日本語であることがアクセシビリティを制限している。よって「Competent（標準的）な流暢性」に該当する。
+
+**IntentResolution（意図の解決）｜失敗**
+> アシスタントの回答は2つの対象間の消費量の差分という数値を示しており、ユーザーの問い（特定の国と日本の年間消費量の差）にある程度は関連している。しかし文脈が不足しており、年間消費量の比較というユーザーの要求に直接応えていない。数値が何を表すのか、問いとどう関係するのかを明確にしておらず、意図の解決が不完全である。
+
+**関連性｜合格｜5点中4点**
+> RESPONSE は両国の該当数値とともに消費量の差分を示し、QUERY に正確かつ完全に答えている。余計な情報を含まず必要な要素をすべて備えた、完全な回答である。
+
+**タスク遵守｜合格**
+> アシスタントは「最も消費量が多い国と日本の差」というユーザーの問いに直接答え、差分を 34.0 と算出している。ユーザーの要求に沿い、情報を明確に提示している。安全性・プライバシー上の問題はなく、期待される形式に従っている。必要な手順の省略や未承認ツールの使用もなく、計算も提示情報に基づいている。したがって出力は完全で、重大な失敗なくユーザーのニーズを満たしている。
+
+**考察のヒント**: この例では IntentResolution だけが「失敗」。答え（34食）は出ているが「何の数値をどう比較したか」の文脈説明が弱いと判定されたため。instructions に「比較対象と各数値を明示してから結論を述べる」と加えると改善が見込めます。
+
+</details>
+
+### B. データセットで完全な評価（複数ケースをまとめて採点）
+> 時間に余裕がある場合のみ実施。無い場合は **A だけで完了**でも構いません。
+
+1. **データソース**で **既存のトレース** を選び、期間（日単位）でトレースを対象にする。
+   - トレースはインジェストに 3〜5 分かかるため、**評価する時刻の 10 分以上前**のトレースを対象にする。
+2. **フィールドのマッピング**で、各項目をデータセットの実列に割り当てる。
+   - **クエリ**と**応答**は自動検出され `{{item.query}}` / `{{item.response}}` が入る。
+   - ⚠️ **ツール呼び出し**・**ツール定義**は初期状態で「**使用できません**」になっている。**tool 系・agent 系の評価器を使うなら、ドロップダウンから手動で `{{item.tool_calls}}` / `{{item.tool_definitions}}` を選び直す**。ここが「使用できません」のままだと tool 系・agent 系が必須入力を満たせず ⚠️ が残る。
+3. **条件（評価器）** は、**自動提案された 20 個をそのまま使ってよい**（エージェント9＋品質4＋安全性7）。
+   - ツール項目をマッピング済みなら、tool 系・agent 系も含めて実行できる。
+   - ⚠️ が消えない場合は下の「回避策」を参照。
+4. **完全な評価を実行する** をクリックし、**評価** タブで結果（各ケースのスコア・集計）を確認する。
+
+> **メモ: このハンズオンの範囲**
+> - このハンズオンでは評価の操作のみ実習します。評価器の内容や実際の評価結果はこのハンズオンでは取り扱いません。
+
+> **⚠️ が消えず「次へ」が押せないとき（既知の回避策・動作確認済み）**
+> - 日本語表示（暴力／性的／関連度…）だと **品質・安全性に ⚠️ が残り「次へ」が無効**のまま、というローカライズ由来の不具合が起きることがある。
+> - **ポータルの表示言語を「English」に切り替える**と、同じ評価器（Violence / Sexual / Relevance …）で **⚠️ が消え、「次へ」が押せる（＝実行できる）ようになる**。内部の評価器 ID は同じなので、採点結果は日本語表示と変わらない。
+> - 手順: 右上のアカウント／設定から表示言語を English に変更 → ウィザードに戻ると警告が解消される。
+
+## 時間が足りないとき（最小構成）
+- **A のみ**を実施する。品質系の評価器を2〜3個だけチェックして質問を1つ送信し、応答が自動採点される様子を見れば OK。
+- B（データセット評価）はスキップして問題ありません。
+
+## 完了チェック
+- [ ] クイック評価メトリクスで評価器を選び、スコアを表示できた
+- [ ] スコアの意味（高い/低い理由）を1つ以上説明できた
+- [ ]（任意）データセットを使った完全な評価を実行できた
+  </script>
+
+  <script type="text/markdown" id="step08-rubric.md">
+# Step 8 — Rubric 評価（ルーブリック採点）（15分 / 2:10〜2:25）
+
+## 目的
+Step 7 では Foundry が用意した**組み込みの評価器**（品質・安全性など）で採点しました。この Step では、**自分たちの「良い回答」の定義**を採点基準として持ち込める **Rubric 評価器（ルーブリック評価器）** を体験します。
+
+Rubric 評価器を使うと、「ポリシー遵守」「ツールの使い方の正しさ」「言い回しの丁寧さ」など、**このエージェントで本当に重視したい観点**を重み付きの基準として定義し、LLM ジャッジに一貫して採点させられます。
+
+> **（事実）** Rubric 評価器はプレビュー機能です。出典: <https://learn.microsoft.com/azure/foundry/concepts/evaluation-evaluators/rubric-evaluators>
+
+## Rubric（ルーブリック）とは
+- **Rubric** = 回答をどう採点するかを定義した「基準の集合」。
+- 各 Rubric は複数の **dimension（採点観点）** を持つ。
+- 各 dimension には次の要素がある:
+  | 要素 | 意味 |
+  |---|---|
+  | `id` | 観点の識別子（例: `policy_enforcement`）。 |
+  | `description` | その観点が「何を測るか」を具体的に書いた説明。 |
+  | `weight` | その観点の相対的な重要度（重み）。 |
+  | `always_applicable` | `true` なら関連性に関わらず毎回採点する（総合品質などに使う）。 |
+- LLM ジャッジが各観点を **1〜5点** で採点し、**重み付き平均を 0〜1 に正規化**したものが総合スコアになる。
+- 総合スコアが **しきい値（既定 0.5）** 以上なら **pass**、未満なら **fail**。
+
+> **（事実）** 採点は 1〜5 点、総合スコアは重み付き平均を 0–1 に正規化、既定しきい値は 0.5。出典: 上記 Rubric evaluators ページ。
+
+## 事前準備
+- Step 3〜5 で作成した Agent（`handson-agent-<自分の名前>`）があること。
+- 採点用のジャッジ モデルとして **gpt-5.4**（または gpt-5.4-mini / gpt-5.5 など推奨モデル）のデプロイがあること。
+  - **（事実）** Rubric のジャッジ推奨モデル: gpt-5.5 / gpt-5.4 / gpt-5.4-mini（コスト対性能のバランス最良）など。
+
+## 手順
+
+### A. Rubric 評価器を自動生成する
+1. Foundry プロジェクトで **評価（Evaluation）** を開き、**評価器カタログ（Evaluator catalog）** に移動して、**エバリュエーターの作成** を開く。
+2. 「エバリュエーターの作成」画面で、次のとおり入力する。
+
+   | 項目 | 設定値（このハンズオン） | 補足 |
+   |---|---|---|
+   | **評価者名** ✱ | `rubric-handson-<自分の名前>` | 半角英数字・ハイフンで一意に。必須。 |
+   | **表示名** | `Rubric ハンズオン` | 一覧で見やすい名前（省略可）。 |
+   | **説明** | `自分の Agent 向けに重視する観点を採点する Rubric` | 省略可。 |
+   | **評価者の種類** ✱ | **ルーブリック** を選択 | 「プロンプト」「コード」は選ばない。 |
+   | **ルーブリックの自動生成** | **オン**（トグルを右に） | Agent の文脈から採点観点を自動生成する。 |
+   | **モデル** ✱ | **gpt-5.4** を選択 | ジャッジ（採点）モデル。gpt-5.4-mini / gpt-5.5 でも可。必須。 |
+   | **対象エージェント（省略可能）** | Step 3〜5 の Agent `handson-agent-<自分の名前>` を選択 | 選ぶと、その Agent の instructions を文脈として Rubric を生成する。 |
+   | **プロンプト** ✱ | **対象エージェントを選ぶと自動設定されるプロンプトのままでOK**（より良くしたい場合は下記の例文で上書き） | 対象エージェントを選ぶと、その Agent の instructions が自動でこの欄に入る。生成器はこれを手がかりに採点観点を推定するので、そのままでも妥当なルーブリックが作れる。評価観点を明示したい場合のみ下記例文に置き換える。必須。 |
+   | **コンテキスト（省略可能）** | **オフ**のまま | 追加の参照資料を渡したいときだけオンにする。**（注）プレビュー中のため、オンにするとルーブリック生成が 502（Bad Gateway）で失敗するケースがある。まずはオフで生成すること。** |
+   | **詳細オプション** | 開かなくてよい | しきい値などの微調整用。既定のままで可。 |
+
+   **プロンプト欄について**：対象エージェントを選ぶと、この欄には Agent の instructions（システムプロンプト）が自動で入ります。これは「エージェントがどう振る舞うか」の説明で、**そのまま生成しても妥当なルーブリックが作れます**。一方この欄は本来「**何を評価するか（採点の観点）**」を書く欄なので、狙った観点を出したいときは次の例文に**上書き**するとブレが減ります（任意）。
+
+   **評価観点を明示したい場合の例文**（上書き用）:
+
+   > このエージェントの回答を、①ユーザーの意図を正しく理解しているか、②Web Search / MCP など適切なツールを正しく使えているか、③根拠（出典）を示せているか、④簡潔で丁寧に応答しているか、の観点で評価してください。良い回答は、正確な情報を根拠付きで簡潔に返すものです。
+
+3. 入力後、画面下部の **作成 / 生成** を押すと、Agent の文脈とプロンプトから採点観点（dimensions）が自動生成される。
+
+<details>
+<summary>🖼️ 生成結果の画面例（クリックして開く）</summary>
+
+![生成されたルーブリック（8 個のディメンション）](../image/rubric01.png)
+
+**画面の内容（日本語訳）**
+
+> **生成されたルーブリック（8 個のディメンション）**
+> スコア基準を定義するためにディメンションを追加します。各ディメンションには、タイトル、説明、重み（1 から 10）が必要です。各ディメンションのスコアは 1 から 5 で、評価全体のスコアは 0 から 1 です。
+>
+> **成功スコアのしきい値**: `0.5`
+
+| 重み | ディメンションの ID | 説明（日本語訳） | 常に適用 |
+|---:|---|---|:--:|
+| 10 | `grounded_correct_response` | 最終回答がトレースで得られた情報と事実整合し、裏付けのない事実主張を持ち込まない。 | |
+| 6 | `tool_use_policy_compliance` | 情報検索が必要なときは、web_search の前に knowledge_search を使う。 | |
+| 5 | `web_search_transition_justification` | knowledge_search の後に web_search を使う場合、その検索結果が空・無応答・古い・曖昧・矛盾など不十分だったことがトレースで示されている。 | |
+| 4 | `source_citation_quality` | 回答中の検証可能な事実主張に、ドキュメント ID・タイトル・ページ名・URL など追跡可能な出典が付いている。 | |
+| 4 | `uncertainty_handling` | 根拠が欠落・脆弱・矛盾しているとき、エージェントは根拠のない断定を避ける（分からないと述べる、または留保付きで答える）。 | |
+| 3 | `japanese_polite_concise_style` | 最終応答が日本語で、丁寧な口調で、不要に冗長でない。 | |
+| 2 | `answer_structure_and_helpfulness` | 直接的な答えがある場合、補足の詳細より先に結論を提示する。 | |
+| 5 | `general_quality` | 上記の基準に含まれないその他の重要な品質要素。 | ✓ |
+
+> 画面右の ✏️ で各ディメンションを編集、下部の **＋ ディメンションの追加** で観点を追加できます。
+
+</details>
+
+> **メモ: UI 上の呼び名について**
+> 新ポータルでは「Rubric 評価器」を **エバリュエーター（ルーブリック）** と表記します。`評価者名` `評価者の種類` などの「評価者」は本ドキュメントの「評価器 / Rubric」と同じものです。
+
+> **メモ: このハンズオンの範囲**
+> このハンズオンでは Rubric の **生成・確認・実行という操作** を体験します。生成された観点の良し悪しや、実際の採点結果の妥当性はこのハンズオンでは深追いしません。
+
+### B. 生成された Rubric を確認・調整する
+1. 生成された各 dimension の `description` と `weight` を確認する。
+   - 重要な観点ほど `weight` が大きい（生成時は最重要の1つが 8〜10、その他が 1〜6 に割り振られる）。
+2. 必要なら次を調整する（**時間があれば**）:
+   - `description` をより具体的に書き換える（採点のブレが減る）。
+   - 観点を **追加 / 削除** する。
+   - **しきい値（pass threshold）** を 0.0〜1.0 で調整する（上げると厳しく、下げると緩く）。
+   - **総合品質**の観点には **Always applicable** を付けておくと毎回採点される。
+3. 最初は **自動生成のまま** で構いません。まず1回動かして、結果を見てから調整するのが定石です。
+
+<details>
+<summary>📋 Rubric の例（クリックして開く）— レストラン予約エージェント向け</summary>
+
+```json
+[
+  { "id": "intent_recognition",   "description": "予約意図（新規・変更・キャンセル・問い合わせ）を正しく識別し、不要な聞き返しをせずに適切なフローを進める。", "weight": 9 },
+  { "id": "tool_usage_accuracy",  "description": "正しいツールを正しいパラメーターで呼ぶ。不要な呼び出しをせず、必要な呼び出しを飛ばさない。", "weight": 6 },
+  { "id": "policy_enforcement",   "description": "業務ルール（営業時間・最大人数・予約可能期間）を守り、違反する予約を作らない。", "weight": 5 },
+  { "id": "communication_clarity","description": "簡潔で分かりやすく、確定前に予約内容を確認し、丁寧な口調で応答する。", "weight": 2 },
+  { "id": "general_quality",      "description": "上記に含まれないその他の重要な品質要素。", "weight": 5, "always_applicable": true }
+]
+```
+
+> 出典: <https://learn.microsoft.com/azure/foundry/concepts/evaluation-evaluators/rubric-evaluators>（英語原文の日本語訳。ハンズオンでは自分の Agent 向けに自動生成されたものを使います）
+
+</details>
+
+### C. Rubric 評価器で評価を実行する
+1. **評価（Evaluation）** で **作成（Create）** を選び、評価ウィザードを進める。
+2. データソースは Step 7 と同様に **既存のトレース**（または既存の会話 / データセット）を選ぶ。
+   - トレースはインジェストに 3〜5 分かかるため、**評価時刻の 10 分以上前** のトレースを対象にする。
+3. **フィールドのマッピング**（Step 7 と同じ）:
+   - クエリ / 応答は自動検出（`{{item.query}}` / `{{item.response}}`）。
+   - ツール系の観点も採点するなら、ツール呼び出し / ツール定義を `{{item.tool_calls}}` / `{{item.tool_definitions}}` に手動でマッピングする。
+4. **条件（評価器）** のステップで **評価器を追加** し、A で作成した **Rubric 評価器** を選ぶ。
+   - ここでは **Rubric 評価器のみ** を設定する。
+   - 選んだ評価器の **構成** 画面で、**Model（ジャッジ モデル）** と **データ マッピング**（クエリ `{{item.query}}` / 応答 `{{item.response}}` / ツールの定義 `{{item.tool_definitions}}`）を確認・設定する。
+5. **評価を実行** し、**評価** タブで結果を確認する。
+
+### D. 採点結果の読み方
+- 各 dimension ごとに **1〜5 点** と **理由（reason）** が表示される。
+- 総合 **score（0〜1）** と **label（pass / fail）**、判定理由が出る。
+- **どの観点が総合スコアを押し下げた / 押し上げたか** を確認し、instructions 改善の手がかりにする。
+
+> **メモ**: 評価理由（reason）は英語で表示されることがあります。観点 `id` と点数の対応を見れば、どこが弱いかは把握できます。
+
+## 時間が足りないとき（最小構成）
+- **A（自動生成）と D（結果の読み方）** だけでも Rubric の考え方は伝わります。
+- C の実行はスキップし、生成された dimensions を眺めて「自分の Agent で重視したい観点は何か」を1つ言語化すれば OK。
+
+## UI が違うとき
+- **評価器カタログに Rubric が無い** → プレビュー機能のため、リージョン/テナントにより表示されないことがあります。表示されない場合は本 Step をスキップし、講師に確認してください。
+- 画面名やボタン名が一致しない場合は Step 12 — トラブルバッファ を参照。
+
+## 完了チェック
+- [ ] Agent の文脈から Rubric 評価器を自動生成できた
+- [ ] 生成された dimensions（採点観点と重み）を確認できた
+- [ ]（任意）Rubric 評価器で評価を実行し、pass/fail と観点別スコアを確認できた
+- [ ] 「自分の Agent で最も重視したい観点」を1つ言語化できた
+  </script>
+
+  <script type="text/markdown" id="step09-m365-publish.md">
+# Step 9 — Microsoft 365 / Teams への公開（発展・任意）（15分 / 2:25〜2:40）
+
+> **この Step は「発展・任意」です。** これまで作った Agent を、Microsoft 365 Copilot や Microsoft Teams の中から呼び出せるように**公開（Publish）**します。追加の RBAC（Azure Bot Service 作成権限）や、組織公開の場合は**管理者承認**が必要になるため、権限が足りない場合は読み物として理解するだけでも構いません。時間が押している場合はこの Step を飛ばして Step 10 — Hosted Agent デプロイ または Step 11 — クリーンアップ に進んでください。**必須パスにはこの Step を含みません。**
+
+## 目的
+Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッジ・トレース・評価まで体験しました。この Step では、その Agent を **Microsoft 365 Copilot と Microsoft Teams に公開**し、利用者が**普段使っているツールの中から Agent を発見して会話できる**状態にするフローを体験します。
+
+公開されるのは Agent の**安定エンドポイント（stable endpoint）**です。利用者は常に一貫した Agent と対話し、開発者側は裏で新しいバージョンをロールアウトできます。
+
+> **（事実）** ポータルからの公開は Foundry の Microsoft 365 公開 API を呼び出し、Teams アプリ パッケージを自動生成します。出典: <https://learn.microsoft.com/azure/foundry/agents/how-to/publish-copilot>
+
+## 公開すると何が起きるか
+公開時、Foundry は次を自動で行います。
+
+1. 表示名・説明・バージョンなど入力プロパティを検証する。
+2. **Teams アプリ マニフェスト**を `.zip` パッケージとしてコンパイルする。
+3. マニフェストを **Microsoft 365 Copilot / Teams のエージェント カタログ**に送信する。
+4. Agent が Microsoft 365 / Teams とメッセージ交換するための **`activity` プロトコル**を有効化する。
+5. 呼び出し権限を制御する**認可スキーム**（`BotServiceRbac` または `BotServiceTenant`）を、選んだ公開範囲に応じて有効化する。
+
+> **（事実）** 公開時に上記 1〜5 が実行されます。出典: <https://learn.microsoft.com/azure/foundry/agents/how-to/publish-copilot#what-happens-when-you-publish>
+
+## Entra Agent ID・Microsoft Agent 365 との関係（特記）
+この Step の「Teams / M365 Copilot への公開」は、単に UI に Agent を出すだけでなく、**エージェントの ID（Entra Agent ID）** と **組織の統制プレーン（Microsoft Agent 365）** の 2 つと密接に関係します。ハンズオンの本筋（Bot Service 経由の配布）とは**別レイヤー**なので、ここで関係を整理しておきます。
+
+### 1. Entra Agent ID（Microsoft Entra Agent ID）＝ エージェント固有の ID
+- Foundry は Entra Agent ID を**エージェントのライフサイクルを通じて自動でプロビジョニング・管理**します。プロジェクトで最初の Agent を作った時点で、**既定の「agent identity blueprint」と「agent identity」**が作られ、プロジェクト内の未公開エージェントは**この共有 ID** で認証します。
+- **公開（Agent Application 化）すると、そのエージェント専用の agent identity blueprint と agent identity が新たに作られ**、以降はプロジェクト共有 ID ではなく**エージェント固有の Entra Agent ID** で認証します。これにより、MCP / A2A ツールへの接続やリソース アクセスを、資格情報を共有せずに**エージェント単位で認可・監査**できます。
+- つまり **Step 4 の MCP 接続や Step 5 の Foundry IQ が「誰の権限で動くか」を決めているのがこの Entra Agent ID** です。公開はこの ID を「プロジェクト共有」から「エージェント専用」に昇格させる操作でもあります。
+
+> **（事実）** Foundry は Entra Agent ID を自動作成・管理し、未公開エージェントはプロジェクト共有 ID、公開エージェントは専用 ID で認証します。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/agent-identity#foundry-integration> / <https://learn.microsoft.com/azure/foundry/agents/how-to/agent-applications#what-is-publishing>
+
+### 2. Microsoft Agent 365 ＝ 組織全体のエージェント統制プレーン
+- **Microsoft Agent 365** は、組織内のすべての AI エージェントを**棚卸し・保護・観測**するためのエンタープライズ統制プレーンです。エージェントを **Entra Agent ID を通じて第一級の Entra ID** として扱い、認証・認可・ライフサイクル ガバナンスを ID オブジェクトに直接適用します。
+- 主な柱は **Registry（在庫）／ Access control（Entra ベースの認可・RBAC/ABAC・リスク連動の条件付きアクセス）／ Visualization（可視化）／ Interoperability（M365 データ連携）** です。
+
+> **（事実）** Agent 365 は Entra Agent ID を基盤にした統制プレーンで、Registry・Access control・Visualization・Interoperability の柱を持ちます。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/agent-365-integration>
+
+### 3. Foundry と Agent 365 のつながり方（2 経路）
+Foundry のエージェントは、次の **2 通り**で Agent 365 とつながります。
+
+| 経路 | 何が起きるか | この Step との関係 |
+|---|---|---|
+| **① 自動レジストリ同期（Registry sync）** | 組織が Agent 365 をサブスクライブしていれば、**Foundry で公開したエージェントは自動で Agent 365 レジストリに現れ**、IT 管理者が在庫・所有者・ガバナンスを一元管理できる。 | **この Step の公開がトリガー**。公開すると（サブスクライブ済み組織では）自動で統制対象に入る。 |
+| **② Autopilot として公開（Autopilot publishing）** | **Hosted Agent** を「autopilot（ユーザーの代わりに自律動作するエージェント）」として公開すると、**専用の Entra Agent ID を受け取り**、管理者承認後に Agent 365 レジストリに出て Teams などに接続できる。 | **この Step とは別フロー**。Step 10 — Hosted Agent デプロイ 系の `azd` ベースの公開（`agent-365` サンプル）で行う。 |
+
+> **（事実）** Foundry↔Agent 365 は「自動レジストリ同期」と「autopilot 公開」の 2 経路で接続します。Prompt / Hosted いずれも両経路をサポートします。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/agent-365-integration#how-foundry-integrates-with-agent-365>
+
+### まとめ（3 者の役割分担）
+- **この Step（Teams / M365 公開）** = 利用者が M365 Copilot / Teams から呼べるようにする**配布**（Azure Bot Service ＋ Teams マニフェスト）。
+- **Entra Agent ID** = そのエージェントが「何の権限で動くか」を決める**ID・認可の土台**（公開でエージェント専用 ID に昇格）。
+- **Agent 365** = 公開後のエージェントを組織横断で**棚卸し・条件付きアクセス・監査・ブロック**する**ガバナンス層**。
+
+> **（注）** 「公開（Publish＝Agent Application 化）」で作られるのは **Entra Agent ID（agent identity / blueprint）** ですが、Foundry Agent Application 自体は **Entra の agent registry には登録されません**。組織の在庫としての可視化は、上表①の **Agent 365 レジストリ同期**が担います（両者は別物）。出典: <https://learn.microsoft.com/azure/foundry/agents/how-to/agent-applications#what-is-publishing>
+>
+> **（推測）** ハンズオン用テナントでは Agent 365 のサブスクライブ（M365 Copilot ライセンス等）が無い場合が多く、その場合レジストリ同期や条件付きアクセスは体験できません。ここでは「公開すると ID とガバナンスがこう連動する」という**概念の理解**までを到達目標とします。
+
+## 事前準備
+- Step 3〜5 で作成し、**動作確認済みの Agent**（`handson-agent-<自分の名前>`）があること。
+- 公開したい **アクティブ バージョン**が選択されていること（既定は「常に最新を使用（Always use latest）」で可）。
+- 次のロールを持っていること:
+  - **Azure Bot Service 共同作成者（Azure Bot Service Contributor）**ロール。公開時に Azure Bot Service リソースを作成（`Microsoft.BotService/botServices/write`）・チャネル構成（`.../channels/write`）するために必要。**Foundry のロールだけでは付与されない**点に注意（より広い Contributor / Owner でも可）。
+  - Foundry プロジェクト スコープの **Foundry User** ロール（Agent の作成・管理・公開）。
+- サブスクリプションで **`Microsoft.BotService`** リソース プロバイダーが登録済みであること（初回のみ）:
+
+  ```powershell
+  az provider register --namespace Microsoft.BotService
+  ```
+
+> **（事実）** RBAC 要件（Azure Bot Service Contributor + Foundry User）と、公開前のバージョン確認が前提です。出典: <https://learn.microsoft.com/azure/foundry/agents/how-to/publish-copilot#prerequisites>
+>
+> **（注）** Foundry のロール名は最近リネームされました（旧: Azure AI User など → 新: Foundry User など）。環境によっては旧名が表示されることがあります。
+
+## 手順（ポータル UI）
+
+### A. 公開ダイアログを開く
+1. Foundry ポータルで、公開したい Agent（`handson-agent-<自分の名前>`）を開く。
+2. 右上の **公開（Publish）** ボタンを押し、**Teams and Microsoft 365 Copilot** を選ぶ。
+   - もしくは **詳細（Details）** タブ →**チャネル（Channels）** セクションの **Teams & Microsoft 365 Copilot** からでも開ける。
+3. **Publish to Teams and Microsoft 365** ダイアログが開く。
+
+### B. Azure Bot Service とメタデータを入力する
+1. **Azure Bot Service** リソースが自動作成される（既存があれば読み取り専用で表示）。
+2. 必須メタデータを入力する。
+
+   | 項目 | 内容（このハンズオン） |
+   |---|---|
+   | **Name（表示名）** | `handson-agent-<自分の名前>`（エージェント ストアに表示される名前） |
+   | **Publish version** | `1.0.0`（major.minor.patch の 3 パート） |
+   | **Short description** | `根拠付きで社内・最新情報に答えるハンズオン用エージェント` |
+   | **Description** | `Web Search と Foundry IQ を使って、出典付きで質問に回答します。` |
+   | **Developer（Author）** | 自分の名前 / 組織名 |
+
+3. （任意）**More** を展開すると、Developer website / Terms of use / Privacy statement（いずれも **HTTPS 必須**）を追加できる。ハンズオンでは省略可。
+
+### C. 公開範囲（誰が使えるか）を選ぶ
+**Choose who can use this agent** で範囲を選びます。
+
+| 選択肢 | 挙動 | 管理者承認 | 向いている用途 |
+|---|---|---|---|
+| **Just you（自分だけ）** | 公開後すぐ利用可。エージェント ストアの **Your agents** に表示。リンク共有で他の人にも渡せる。 | 不要 | 個人テスト・少人数・パイロット |
+| **People in your organization（組織全体）** | 承認申請が出る。Microsoft 365 管理者が承認・アクセス割り当てを行うと **Built by your org** に表示され、テナント全員が発見・利用できる。 | 必要 | 組織全体への配布・本番 |
+
+> **（推奨）** ハンズオンでは **Just you** を選ぶと、管理者承認を待たずにすぐ結果を確認できます。**People in your organization** を選ぶと、[Microsoft 365 管理センター](https://admin.cloud.microsoft/?#/agents/all/requested) での承認待ちになります。
+
+> **（事実）** Just you = `BotServiceRbac`（承認不要・自分のみ表示）、組織全体 = `BotServiceTenant`（管理者承認・Built by your org 表示）。出典: <https://learn.microsoft.com/azure/foundry/agents/how-to/publish-copilot#publish-to-microsoft-365-and-teams>
+
+### D. 公開する
+1. **Publish** を押す。
+2. **Publish successful** ダイアログが表示されれば成功。
+3. （任意）マニフェストを配布前に調整したい場合は、**Download & customize** から Teams アプリ マニフェスト（`.zip`）を取得できる。
+
+### E. 動作を確認する
+1. **Just you** の場合: Microsoft 365 Copilot / Teams のエージェント ストアの **Your agents** に自分の Agent が表示される。開いて質問し、応答を確認する。
+2. **組織全体**の場合: 管理者承認後に **Built by your org** に表示される。承認状況は [Microsoft 365 管理センター](https://admin.cloud.microsoft/?#/agents/all/requested) の **Requests** で確認できる。
+
+## 時間が足りないとき（最小構成）
+- 本 Step は**任意**です。公開まで行わず、**「公開すると Teams アプリ マニフェストが生成され、Bot Service 経由で M365 / Teams から呼べるようになる」**という仕組みを理解するだけでも目的は達成できます。
+- 公開まで試す場合は、承認待ちの発生しない **Just you** を選ぶと最短で確認できます。
+
+## UI が違うとき
+- **公開（Publish）** ボタンが見つからない場合は、Agent の **詳細（Details）** タブ →**チャネル（Channels）** から **Teams & Microsoft 365 Copilot** を探す。
+- **「公開に必要なアクセス許可」ダイアログ（完了ボタンのみ）が出て、完了を押すとエージェント画面に戻る**場合、サインイン中のユーザーが対象リソース グループで **Azure Bot Service Contributor（`Microsoft.BotService/botServices/write`）を持っていない**ため。ロール付与後は、ポータルを**再サインイン**して数分待ってから再実行する（RBAC の伝播とトークン更新が必要）。
+- 「Azure Bot Service を作成できません」等の権限エラーが出る場合は、**Azure Bot Service Contributor** ロールと **`Microsoft.BotService`** プロバイダー登録を確認する。
+- **公開ボタンが表示されない / 使えない**場合、プロジェクトが**パブリック ネットワーク アクセスを無効化**している可能性がある（その場合は REST API 経由の公開が必要）。参考: <https://learn.microsoft.com/azure/foundry/agents/how-to/publish-copilot-virtual-network>
+- 解決しない場合は Step 12 — トラブルバッファ を参照。
+
+## 完了チェック
+- [ ] Microsoft 365 / Teams への公開で「何が起きるか」（マニフェスト生成・カテゴリ登録・activity 有効化・認可スキーム設定）を説明できる
+- [ ] **Just you** と **People in your organization** の違い（承認要否・表示先）を説明できる
+- [ ] **公開・Entra Agent ID・Agent 365** の役割分担（配布 / ID・認可の土台 / ガバナンス層）と、Foundry↔Agent 365 の 2 経路（レジストリ同期・autopilot 公開）を説明できる
+- [ ]（任意）Agent を公開し、**Publish successful** を確認できた
+- [ ]（任意）Microsoft 365 Copilot / Teams のエージェント ストアで自分の Agent を確認できた
+  </script>
+
+  <script type="text/markdown" id="step10-hosted-agent.md">
+# Step 10 — Hosted Agent デプロイ（発展・任意）（15分 / 2:40〜2:55）
+
+> **この Step は「発展・任意」です。** ここまでのハンズオンは **ポータル UI のみ** で完結しますが、本 Step だけは **VS Code とコード（azd/SDK）** を使う発展課題です。時間が押している場合や、まずはノーコードの流れを一通り体験したい場合は、この Step を飛ばして Step 11 — クリーンアップ に進んで構いません。**必須パス（約180分）はこの Step を含みません。**
+
+## 目的
+Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッジを接続し、トレースと評価まで体験しました。この Step では一歩進んで、**コードで書いた Agent を「Hosted Agent」として Foundry のマネージド ホストにデプロイ** し、Foundry がスケール・認証・監視まで面倒を見る仕組みを体験します。
+
+「ポータルで作る Agent」と「コードで書いて Hosted としてデプロイする Agent」の違いを体感するのがねらいです。
+
+> **（事実）** Foundry Hosted Agents は一般提供（GA）です。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/hosted-agents>
+
+## Hosted Agent とは
+- **Hosted Agent** = 自分で書いた Agent コードを、Foundry の**マネージド ランタイム**上にデプロイして動かす仕組み。
+- サーバーの用意・スケール・認証・監視は Foundry 側が担うため、**インフラ構築なしに** コード資産を公開できる。
+- Foundry がデプロイ時に環境変数を自動注入するので、コードにエンドポイントやキーを直書きしなくてよい。
+  | 注入される環境変数 | 用途 |
+  |---|---|
+  | `FOUNDRY_PROJECT_ENDPOINT` | 所属する Foundry プロジェクトのエンドポイント。 |
+  | `AZURE_AI_MODEL_DEPLOYMENT_NAME` | 使用するモデル デプロイ名。 |
+  | `APPLICATIONINSIGHTS_CONNECTION_STRING` | トレース/メトリクス送信先（Application Insights）。 |
+
+> **（事実）** デプロイ時に上記の環境変数が Foundry から注入されます。出典: <https://learn.microsoft.com/azure/foundry/agents/quickstarts/quickstart-hosted-agent>
+
+## 事前準備
+- **VS Code** と **Foundry Toolkit 拡張機能**（プレリリース チャネル）。取得: <https://aka.ms/foundrytk>
+- **Azure Developer CLI（azd）1.27.1 以上**。
+- Foundry プロジェクトに対して **Contributor** ロールを持っていること。
+- リソース プロバイダーの登録（初回のみ）:
+
+  ```powershell
+  az provider register --namespace Microsoft.CognitiveServices
+  ```
+
+> **（推測）** 拡張機能はプレビュー段階のため、メニュー名やコマンド名は更新されることがあります。表示が異なる場合は近い名称を探してください。
+
+## 手順（VS Code Foundry Toolkit を使う推奨フロー）
+
+### A. Agent プロジェクトのひな形を用意する
+1. VS Code で作業用フォルダーを開く。
+2. コマンド パレット（`Ctrl+Shift+P`）を開き、**Foundry Toolkit** 関連のコマンドから Agent プロジェクトのひな形を作成する（`azd ai agent init` 相当）。
+3. 生成された `main.py`（Agent 本体）を確認する。ローカルで動作を確認したい場合:
+
+   ```powershell
+   python main.py
+   ```
+
+   起動後、別ターミナルから疎通確認:
+
+   ```powershell
+   curl -X POST http://localhost:8088/responses -H "Content-Type: application/json" -d "{""input"":""こんにちは""}"
+   ```
+
+### B. Hosted Agent としてデプロイする
+1. コマンド パレットで **`Foundry Toolkit: Deploy Hosted Agent`** を実行する。
+2. ウィザードで次のとおり選ぶ。
+
+   | 項目 | 選択値（このハンズオン） | 補足 |
+   |---|---|---|
+   | **Deployment Method** | **Code** | コードから直接デプロイする。 |
+   | **Package Mode** | **Remote** | パッケージングを Foundry 側（リモート ビルド）に任せる。 |
+   | **Agent Name** | 自動入力のままでOK | プロジェクト名から自動で決まる。 |
+
+3. **Next** → **Review and Deploy** → **Deploy** を押す。
+4. デプロイが完了すると、Foundry Toolkit のエクスプローラーの **Hosted Agents** に、作成した Agent が表示される。
+
+### C. デプロイした Agent をテストする
+1. Foundry Toolkit で対象の Hosted Agent を開き、**Playground** タブから質問を送って応答を確認する。
+
+## 参考：azd（CLI）で進める場合
+VS Code を使わず、ターミナルだけで完結させたい場合は次の流れになります（任意）。
+
+```powershell
+azd ai agent init          # ひな形作成
+azd provision              # 必要なリソースをプロビジョニング
+azd deploy                 # Hosted Agent をデプロイ
+azd ai agent invoke "こんにちは、あなたは何ができますか？"   # 動作確認
+azd ai agent monitor --follow   # トレース/ログを追う
+```
+
+> **（注）** 片付け時は `azd down` で作成したリソースを削除できます。詳細は Step 11 — クリーンアップ を参照。
+
+## 時間が足りないとき（最小構成）
+- 本 Step は**任意**です。デプロイまで行わず、**「Hosted Agent とは何か（マネージドにコードを公開する仕組み）」** を読んで理解するだけでも目的は達成できます。
+- ローカル実行（`python main.py`）だけ試して、Foundry へのデプロイはスキップしても構いません。
+
+## UI が違うとき
+- コマンド名（`Foundry Toolkit: Deploy Hosted Agent` 等）が見つからない場合は、Foundry Toolkit 拡張機能が**プレリリース チャネル**で最新化されているか確認する。
+- ウィザードの項目名が異なる場合は、`Deployment Method=Code` / `Package Mode=Remote` に相当する選択肢を探す。
+- 解決しない場合は Step 12 — トラブルバッファ を参照。
+
+## 完了チェック
+- [ ] Hosted Agent が「マネージド ホストにコードをデプロイして動かす仕組み」だと説明できる
+- [ ]（任意）VS Code から Hosted Agent をデプロイし、Foundry Toolkit の Hosted Agents に表示された
+- [ ]（任意）Playground から応答を確認できた
+  </script>
+
+  <script type="text/markdown" id="step11-cleanup.md">
+# Step 11 — クリーンアップ（10分 / 2:55〜3:05）
+
+## 目的
+本日作成したリソースを整理し、不要な課金・混乱を防ぎます。
+
+> **📌 注意**
+> MCP サーバーや Foundry IQ のナレッジ（**事前準備済み**の共有リソース）は **削除しないでください**。
+> 削除対象は「本日あなたが作成したもの」だけです。
+
+## 手順
+1. 自分が作成した **Agent**（`handson-agent-<自分の名前>`）を確認する。
+2. 運用ルールに従って処理する:
+   - **削除する場合**: Agent を選択して削除する。
+   - **残す場合**: 講師の指示に従い、名前や状態をメモして残す。
+3. 自分で追加した接続・テスト用の設定があれば元に戻す。
+4. 共有リソース（MCP・Foundry IQ ナレッジ・モデルデプロイ）に**手を加えていない**ことを確認する。
+
+## クリーンアップ確認表
+| 項目 | 対応 | 完了 |
+|------|------|------|
+| 自作 Agent | 削除 / 残す（指示に従う） | ☐ |
+| 追加した接続・設定 | 元に戻した | ☐ |
+| 共有リソース | 触っていない | ☐ |
+
+## 完了チェック
+- [ ] 自作リソースを整理した
+- [ ] 共有リソースを削除・変更していないことを確認した
+  </script>
+
+  <script type="text/markdown" id="step12-troubleshoot.md">
+# Step 12 — トラブルバッファ（予備 / 適宜）
+
+## 目的
+各ステップで詰まったときの対処をまとめた予備ステップです。時間が余ったら発展課題にも取り組みます。
+
+## よくあるトラブルと対処
+
+### サインイン・権限
+- **旧ポータル表示になる** → 右上の **「新しい Foundry」トグルを ON** にする（ビルド/操作 タブが上部に出る）。
+- **プロジェクトが一覧に出ない** → 右上のテナント/ディレクトリを切り替える。接続情報シートのテナントを確認。
+- **「権限がありません」** → 自分のロールを講師に確認（Foundry アカウント スコープの **Cognitive Services User** が必要）。RBAC の反映に時間差がある場合は数分待つ。
+
+### モデル・プレイグラウンド
+- **モデルが選べない** → ビルド → モデル でデプロイ済みか確認。未デプロイなら講師に連絡。
+- **応答が返らない** → ネットワーク・レート制限を確認。少し待って再実行。
+
+### エージェント・Web Search
+- **Web Search のトグルが無い** → エージェント詳細の **ツール** 内を再確認。構成により既定 ON/表示位置が異なる。
+- **出典が付かない** → 質問が最新情報を要さない場合は Web Search が呼ばれないことがある。明確に最新情報を問う質問にする。
+
+### MCP
+- **MCP が一覧に無い** → 事前準備済みリソース名の綴りを確認。表示されないときは講師へ。
+- **認証エラー** → 接続情報・権限を確認。共有リソースの設定は変更しない。
+
+### Foundry IQ
+- **ナレッジが接続できない** → ナレッジソース名を確認。表示されないときは講師へ。
+- **出典が付かない／的外れ** → 質問がナレッジの範囲外の可能性。範囲内の質問で再確認。
+
+### トレース
+- **トレースが出ない** → 反映に数秒〜数十秒。少し待って再読み込み。
+
+### Microsoft 365 / Teams 公開（Step 9）
+- **「公開に必要なアクセス許可」ダイアログ（完了のみ）が出る** → サインイン中ユーザーが対象 RG で **Azure Bot Service Contributor** を持っていない。付与後は**再サインイン**して数分待ち再実行。
+- **メタデータ入力後に `403 AuthorizationFailed`（`Microsoft.BotService/botServices/write`）** → ロールは付いたがトークン/伝播が未反映。ポータルを再サインインし数分待つ。
+
+## 発展課題（時間が余ったら）
+1. instructions を工夫して、回答の丁寧さ・出典明示のルールを強化する。
+2. 同じ質問を Web Search あり/なしで比較する。
+3. Foundry IQ の範囲内/範囲外の質問を切り分ける instructions を作る。
+4. トレースから「失敗パターンの典型」を1つ言語化する。
+  </script>
+
+  <script type="text/markdown" id="step13-summary.md">
+# Step 13 — まとめ・付録
+
+## まとめ（本日の振り返り）
+本日は、Microsoft Foundry ポータル上で以下を体験しました。
+
+1. **素のモデル**の限界を確認（最新情報・社内情報を持たない）
+2. **単一 Agent** を作成し、instructions と **Web Search**（最新情報）で回答
+3. 事前準備済みの **MCP ツール** を接続して外部連携を体験
+4. 事前準備済みの **Foundry IQ ナレッジ** を接続し、社内資料を根拠にした**根拠付き回答**
+5. **トレース**で内部処理を確認（運用・デバッグの入口）
+6. **手動評価**で回答品質を可視化
+7. **（発展・任意）Microsoft 365 / Teams への公開**で、普段使うツールから Agent を呼べる体験
+8. **（発展・任意）Hosted Agent デプロイ**でコード資産をマネージド ホストへ公開
+9. **クリーンアップ**でリソースを整理
+
+知識源が「素のモデル → Web Search → Foundry IQ」と広がり、さらに「トレースで説明し、評価で改善する」という運用の流れを一気通貫で体験しました。
+
+## 受講者の成果物
+- [ ] instructions を設定した単一 Agent
+- [ ] Web Search / Foundry IQ を使った根拠付き回答（正常例）
+- [ ] 手動評価シート（正常例・失敗例・引用有無）
+- [ ] トレース閲覧結果 1件以上
+- [ ] クリーンアップ確認表
+
+## 次の一歩（発展の方向性）
+- 複数ツール・複数 Agent の連携（マルチエージェント）
+- 自動評価（Evaluation）による品質の継続的モニタリング
+- MCP サーバー / Foundry IQ ナレッジの**自作**（本日は接続のみ。構築は別セッションで）
+
+---
+
+## 付録 A: 前提・留意事項
+- 本ハンズオンは **ポータル UI 中心**。UI は更新されることがあるため、メニュー名が異なる場合は近い名称を探す。
+- **MCP サーバー**と **Foundry IQ ナレッジ**は**事前準備済みの共有リソース**。本日は「接続して使う」のみ。構築手順は別途案内。
+- 使用しない技術: **Assistants API**（非推奨。2026-08-26 に提供終了予定のため本ハンズオンでは扱わない）。
+  - 出典: <https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/assistants>
+
+## 付録 B: 事実 / 推測の区別について
+本教材は、一次情報で確認できた事項（**事実**）と、UI 変更等により差異が生じうる事項（**推測**）を区別しています。手順中のメニュー名・トグル位置などは環境により異なる場合があるため、迷ったら講師に確認してください。
+
+## 付録 C: 主要参照元
+- Microsoft Foundry ポータル: <https://ai.azure.com/>
+- Foundry Agent Service GA: <https://devblogs.microsoft.com/foundry/foundry-agent-service-ga/>
+- Web Search ツール: <https://learn.microsoft.com/en-us/azure/foundry/agents/how-to/tools/web-search>
+- Observability / Tracing: <https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/observability>
+- Assistants API（非推奨）: <https://learn.microsoft.com/en-us/azure/ai-foundry/openai/concepts/assistants>
+  </script>
+
+<script>
+  // ===== ナビゲーション定義 =====
+  const PAGES = [
+    { id: "README.md",                 badge: "目次", title: "Lab 目次（タイムテーブル）" },
+    { id: "step00-orientation.md",     badge: "0",  title: "オリエンテーション" },
+    { id: "step01-signin.md",          badge: "1",  title: "サインイン・権限・プロジェクト確認" },
+    { id: "step02-model-playground.md",badge: "2",  title: "モデルとプレイグラウンド" },
+    { id: "step03-create-agent.md",    badge: "3",  title: "単一 Agent 作成" },
+    { id: "step04-mcp.md",             badge: "4",  title: "MCP サーバーの有効化・接続" },
+    { id: "step05-foundry-iq.md",      badge: "5",  title: "Foundry IQ で根拠付き回答" },
+    { id: "step06-trace.md",           badge: "6",  title: "トレース閲覧" },
+    { id: "step07-eval.md",            badge: "7",  title: "評価" },
+    { id: "step08-rubric.md",          badge: "8",  title: "Rubric 評価" },
+    { id: "step09-m365-publish.md",    badge: "9",  title: "Microsoft 365 / Teams への公開", opt: true },
+    { id: "step10-hosted-agent.md",    badge: "10", title: "Hosted Agent デプロイ", opt: true },
+    { id: "step11-cleanup.md",         badge: "11", title: "クリーンアップ" },
+    { id: "step12-troubleshoot.md",    badge: "12", title: "トラブルバッファ" },
+    { id: "step13-summary.md",         badge: "13", title: "まとめ・付録" },
+  ];
+
+  marked.setOptions({ breaks: false, gfm: true });
+
+  const navEl = document.getElementById("nav");
+  const contentEl = document.getElementById("content");
+  const mainEl = document.getElementById("main");
+  let current = null;
+
+  function mdFor(id){
+    const el = document.getElementById(id);
+    return el ? el.textContent : "# 見つかりません";
+  }
+
+  function render(id){
+    const page = PAGES.find(p => p.id === id) || PAGES[0];
+    current = page.id;
+    contentEl.innerHTML = marked.parse(mdFor(page.id));
+
+    // 内部 .md リンク → セクション切替
+    contentEl.querySelectorAll('a[href$=".md"]').forEach(a => {
+      const href = a.getAttribute("href");
+      const base = href.split("/").pop();
+      if (PAGES.some(p => p.id === base)) {
+        a.addEventListener("click", e => { e.preventDefault(); render(base); });
+      }
+    });
+
+    // pager
+    const idx = PAGES.findIndex(p => p.id === current);
+    const prev = PAGES[idx - 1], next = PAGES[idx + 1];
+    const pager = document.createElement("div");
+    pager.className = "pager";
+    const pb = document.createElement("button");
+    pb.textContent = prev ? "⬅ " + (prev.badge==="目次"?"目次":"Step "+prev.badge+" — "+prev.title) : "⬅ 前へ";
+    pb.disabled = !prev; if (prev) pb.onclick = () => render(prev.id);
+    const nb = document.createElement("button");
+    nb.className = "nxt";
+    nb.textContent = next ? (next.badge==="目次"?"目次":"Step "+next.badge+" — "+next.title) + " ➡" : "次へ ➡";
+    nb.disabled = !next; if (next) nb.onclick = () => render(next.id);
+    pager.append(pb, nb);
+    contentEl.appendChild(pager);
+
+    // active 表示 & スクロール先頭
+    navEl.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.id === current));
+    mainEl.scrollTop = 0;
+    if (history.replaceState) history.replaceState(null, "", "#" + current);
+  }
+
+  // サイドバー構築
+  const secDoc = document.createElement("div"); secDoc.className = "sec-label"; secDoc.textContent = "はじめに";
+  navEl.appendChild(secDoc);
+  let insertedCore = false, insertedOpt = false;
+  PAGES.forEach(p => {
+    if (p.id === "step00-orientation.md" && !insertedCore){
+      const s = document.createElement("div"); s.className="sec-label"; s.textContent="必須パス"; navEl.appendChild(s); insertedCore = true;
+    }
+    if (p.opt && !insertedOpt){
+      const s = document.createElement("div"); s.className="sec-label"; s.textContent="発展・任意 / 仕上げ"; navEl.appendChild(s); insertedOpt = true;
+    }
+    const item = document.createElement("div");
+    item.className = "nav-item";
+    item.dataset.id = p.id;
+    item.innerHTML = `<span class="badge">${p.badge}</span><span>${p.title}${p.opt ? '<span class="opt">発展</span>' : ''}</span>`;
+    item.onclick = () => render(p.id);
+    navEl.appendChild(item);
+  });
+
+  // 初期表示（URL ハッシュ優先）
+  const start = decodeURIComponent((location.hash || "").replace("#",""));
+  render(PAGES.some(p => p.id === start) ? start : "README.md");
+</script>
+</body>
+</html>

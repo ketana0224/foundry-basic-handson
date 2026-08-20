@@ -1,0 +1,10 @@
+# ルート直下の .md は README.md 以外を無視（lab/ 配下や report/ 配下は対象外）
+/*.md
+!/README.md
+
+# report フォルダを無視
+/report/
+
+# Foundry Toolkit で生成した Hosted Agent のひな形（ローカル作業用）を無視
+/my-agent-9sp4ue/
+
