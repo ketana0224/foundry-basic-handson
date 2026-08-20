@@ -335,6 +335,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    ```yaml
    services:
      agent-framework-agent-basic-responses:
+       project: src/agent-framework-agent-basic-responses
        host: azure.ai.agent
        # ...（以降はそのまま）
      ai-project:
@@ -355,6 +356,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    ```yaml
    services:
      agent-basic-responses-userNN:   # ← userNN は自分の番号（例: agent-basic-responses-user01）。共有プロジェクトでの衝突を避ける
+       project: src/agent-framework-agent-basic-responses   # ← ソース ディレクトリは変えない
        host: azure.ai.agent
        # ...（以降はそのまま）
      ai-project:
