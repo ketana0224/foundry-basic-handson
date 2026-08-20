@@ -91,7 +91,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    | 1 | **Select a language** | **Python**（↑↓ で選び Enter） | もう一方は C#。本手順は Python 前提。 |
    | 2 | **Select a starter template** | **Basic agent (Responses, Agent Framework, Python)** | `responses` プロトコル 2.0.0 の最小構成。一覧には `Agent with Local Tools` / `Agent with MCP Tools` / `Basic agent (Invocations, …)` / `Note-taking agent (…without a framework…)` などもあるが、**`Basic agent (Responses, Agent Framework, Python)`** を選ぶ。 |
    | 3 | **Select a Foundry project to host your agent** | **Use an existing Foundry project** | 本ハンズオンは**既存の共有 Foundry プロジェクト**を使うため、`Create a new Foundry project` ではなく **`Use an existing Foundry project`** を選ぶ。続けて表示される一覧から**共有プロジェクト（例: `proj-foundryobs-jyenh`）を選択**する。 |
-   | 4 | **How would you like to proceed?**（モデルの取り扱い） | **Skip this model entirely (remove from azure.yaml)** | ひな形の `azure.yaml` は既定で `gpt-5.4-mini` の**新規モデルデプロイ**を作ろうとしますが、共有プロジェクトには**既に `gpt-5-mini` がデプロイ済み**です。受講者11人が各自新規モデルを作ると**クォータ枯渇・重複**になるため、**`Skip this model entirely (remove from azure.yaml)`** を選んで `azure.yaml` からモデル定義を外します（モデル名は後で `AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5-mini` で指定）。`Deploy as specified` / `Choose a different model` は新規デプロイになるので**選ばない**。 |
+   | 4 | **How would you like to proceed?**（モデルの取り扱い） | **Skip this model entirely (remove from azure.yaml)** | ひな形の `azure.yaml` は既定で `gpt-5.4-mini` の**新規モデルデプロイ**を作ろうとしますが、共有プロジェクトには**既に `gpt-5.4-mini` がデプロイ済み**です。受講者11人が各自新規モデルを作ると**クォータ枯渇・重複**になるため、**`Skip this model entirely (remove from azure.yaml)`** を選んで `azure.yaml` からモデル定義を外します（モデル名は後で `AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5.4-mini` で指定）。`Deploy as specified` / `Choose a different model` は新規デプロイになるので**選ばない**。 |
 
    > **（フォルダー名について）** テンプレート選択後、`azd` は**テンプレート名のフォルダー**を自動作成します（フォルダー名は聞かれません）。例: `Basic agent (Responses, Agent Framework, Python)` を選ぶと `…\AIFoundryProjects\agent-framework-agent-basic-responses\` が作られ、そこへ一式がコピーされます。
    >
@@ -109,7 +109,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    >
    > これは `azd` が**リソース名ホスト**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）でエンドポイントを組み立てているためで、このホストは **DNS 解決できません**（正しいのは**カスタム サブドメイン** `foundryobsjyenh.services.ai.azure.com`）。ここでは「エージェント存在チェックができなかった」だけの**非致命的警告**なので init は続行して構いませんが、**このままでは後続の `azd provision`/`deploy` がエンドポイント不到達で失敗**します。**必ず C 節の C3 で `FOUNDRY_PROJECT_ENDPOINT` をカスタム サブドメインに設定**してください。
    >
-   > **（`AZURE_AI_MODEL_DEPLOYMENT_NAME` の入力）** モデルを `Skip this model entirely` した場合、init の最後に `Enter a value for AZURE_AI_MODEL_DEPLOYMENT_NAME:` を聞かれます。**共有プロジェクトに実在するデプロイ名**（例: `gpt-5-mini` または `gpt-5.4-mini`）を入力してください。
+   > **（`AZURE_AI_MODEL_DEPLOYMENT_NAME` の入力）** モデルを `Skip this model entirely` した場合、init の最後に `Enter a value for AZURE_AI_MODEL_DEPLOYMENT_NAME:` を聞かれます。**共有プロジェクトに実在するデプロイ名**（本ハンズオンでは `gpt-5.4-mini`）を入力してください。
 
 4. 生成物を確認する。**ルートに `azure.yaml`**、コードは **`src\<テンプレート名>\`** の下にあります（例: `src\agent-framework-agent-basic-responses\` の `main.py` / `requirements.txt`）。以降このフォルダーで作業します。
 
@@ -154,7 +154,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    # Foundry がデプロイ時に自動注入する環境変数
    PROJECT_ENDPOINT = os.environ["FOUNDRY_PROJECT_ENDPOINT"]           # https://<...>.services.ai.azure.com/api/projects/<proj>
-   MODEL_DEPLOYMENT = os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"]     # 例: gpt-5-mini
+   MODEL_DEPLOYMENT = os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"]     # 例: gpt-5.4-mini
 
    # プロジェクト エンドポイントからアカウント ルート（/api/projects/... を除いた部分）を取り出す
    ACCOUNT_ENDPOINT = PROJECT_ENDPOINT.split("/api/projects/")[0]
@@ -252,7 +252,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    - **`AZURE_AI_MODEL_DEPLOYMENT_NAME`**（モデル デプロイ名）
      1. 左メニューの **「デプロイ」** を開く。
-     2. **「デプロイ済みモデル」** タブの一覧から、使いたいモデルの **「名前」** 列の値をそのまま使う（例: `gpt-5-mini`）。
+     2. **「デプロイ済みモデル」** タブの一覧から、使いたいモデルの **「名前」** 列の値をそのまま使う（例: `gpt-5.4-mini`）。
      3. Step 2 のプレイグラウンドで使ったデプロイ名と合わせると確実です。
      > **（注）** 「モデル」列ではなく **「名前」列（デプロイ名）** を使います。デプロイの状態が **Succeeded** のものを選んでください。
 
@@ -303,7 +303,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    azd env set FOUNDRY_PROJECT_ENDPOINT "https://<カスタムサブドメイン>.services.ai.azure.com/api/projects/<プロジェクト名>"
 
    # モデル デプロイ名（既存プロジェクトにデプロイ済みのもの）
-   azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME "gpt-5-mini"
+   azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME "gpt-5.4-mini"
    ```
 
    > **（重要・エンドポイントの落とし穴）** `FOUNDRY_PROJECT_ENDPOINT` のホストは **カスタム サブドメイン**（例: `foundryobsjyenh.services.ai.azure.com`）である必要があります。**リソース名そのまま**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）だと DNS 解決できず失敗します。ポータルの「プロジェクト エンドポイント」に表示される値をそのまま使ってください。
@@ -348,7 +348,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    > **（なぜ）** `azure.ai.project` の `endpoint` を設定すると、`azd` は**新規プロジェクトを作らず、その既存プロジェクトへ接続**します（省略すると新規作成）。私が以前案内した `AZURE_AI_PROJECT_ID` の `azd env set` は **この `azure.yaml` からは参照されない**ため効きません。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/azure-yaml-reference>
    >
-   > **（`deployments` を残す場合）** 既存プロジェクトの `gpt-5-mini` に合わせるなら、`name` / `model.name` を `gpt-5-mini`、`version` を実デプロイのバージョンに合わせます。バージョンが不明なときは削除版が確実です。
+   > **（`deployments` を残す場合）** 既存プロジェクトの `gpt-5.4-mini` に合わせるなら、`name` / `model.name` を `gpt-5.4-mini`、`version` を実デプロイのバージョンに合わせます。バージョンが不明なときは削除版が確実です。
 
 5. **プロビジョニング（既存プロジェクトへ接続）してからデプロイ**する。
 
