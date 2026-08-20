@@ -339,7 +339,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
      ai-project:
        host: azure.ai.project
        deployments: []                          # ← 空のまま（既存プロジェクトのモデルを使う）
-       endpoint: ${FOUNDRY_PROJECT_ENDPOINT}    # ← この 1 行を追加
+       endpoint: ${FOUNDRY_PROJECT_ENDPOINT}    # ← この 1 行を変更または追加（既にある場合はカスタム サブドメインに直す）
    ```
 
    > **（重要・エージェント名の一意化）** `azure.ai.agent` の**サービス名（キー）が、共有プロジェクト上のエージェント名**になります。ひな形の既定名（例: `agent-framework-agent-basic-responses`）のままだと他の受講者と衝突するため、上のように **`userNN` を含む一意名にリネーム**してください（英小文字・数字・`-` のみ）。
