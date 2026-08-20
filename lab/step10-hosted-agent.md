@@ -98,6 +98,18 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    > **（なぜこれか）** 最小構成で `azure.yaml`（`responses` プロトコル 2.0.0）とプロジェクト構造が生成されるため。**このひな形から `main.py` と `requirements.txt` を GA 版に差し替えて使います。** 手順 3 で**既存プロジェクトを選ぶ**とエンドポイント接続が構成されますが、`azure.yaml` は念のため C 節でも接続用に確認・編集します（`ai-project` に `endpoint` を追加）。
    >
    > **（重要・複数受講者の一意名）** 本ハンズオンは **user01〜user11 が同一の共有 Foundry プロジェクト**を使います。Hosted Agent は **`azure.yaml` のサービス名がそのまま共有プロジェクト上のエージェント名**になるため、**既定名のままだと受講者どうしで衝突・上書き**します。Step 3 / Step 4 と同様に、**自分の番号（`userNN`）を含めて一意化**してください（次の C 節でサービス名を変更します）。
+   >
+   > **（実機で出る WARNING は想定内）** 手順 3〜4 の途中で次のような警告が出ることがあります。
+   >
+   > ```text
+   > WARNING: unable to check whether agent "..." already exists: HTTP request failed:
+   >   Get https://aif-foundryobs-jyenh.services.ai.azure.com/...: dial tcp: lookup
+   >   aif-foundryobs-jyenh.services.ai.azure.com: no such host
+   > ```
+   >
+   > これは `azd` が**リソース名ホスト**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）でエンドポイントを組み立てているためで、このホストは **DNS 解決できません**（正しいのは**カスタム サブドメイン** `foundryobsjyenh.services.ai.azure.com`）。ここでは「エージェント存在チェックができなかった」だけの**非致命的警告**なので init は続行して構いませんが、**このままでは後続の `azd provision`/`deploy` がエンドポイント不到達で失敗**します。**必ず C 節の C3 で `FOUNDRY_PROJECT_ENDPOINT` をカスタム サブドメインに設定**してください。
+   >
+   > **（`AZURE_AI_MODEL_DEPLOYMENT_NAME` の入力）** モデルを `Skip this model entirely` した場合、init の最後に `Enter a value for AZURE_AI_MODEL_DEPLOYMENT_NAME:` を聞かれます。**共有プロジェクトに実在するデプロイ名**（例: `gpt-5-mini` または `gpt-5.4-mini`）を入力してください。
 
 4. 生成物を確認する。**ルートに `azure.yaml`**、コードは **`src\<テンプレート名>\`** の下にあります（例: `src\agent-framework-agent-basic-responses\` の `main.py` / `requirements.txt`）。以降このフォルダーで作業します。
 
