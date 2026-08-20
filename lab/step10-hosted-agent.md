@@ -28,7 +28,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 ## 事前準備
 - **VS Code** と **Foundry Toolkit 拡張機能**（プレリリース チャネル）。取得: <https://aka.ms/foundrytk>
 - **Azure Developer CLI（azd）1.27.1 以上**。
-- Foundry プロジェクトに対して **Contributor** ロールを持っていること。
+- **既存の Foundry プロジェクトに対して `Foundry Project Manager` ロール**を持っていること（Hosted Agent の登録＝データプレーン操作に必要）。**サブスクリプション レベルのロールは不要**です（既存プロジェクトへのデプロイは `azd deploy` だけで完結し、`azd provision` は実行しません）。
 - **Azure へのサインイン**（未サインインの場合）。VS Code の Foundry Toolkit デプロイ・`azd`・`az` はいずれも Azure 認証が必要です。まず次でサインインしておきます（ブラウザーが開きます）:
 
   ```powershell
@@ -42,6 +42,8 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
   ```powershell
   az provider register --namespace Microsoft.CognitiveServices
   ```
+
+  > **（注）** これはサブスクリプション レベルの操作です。**共有ハンズオン環境では管理者が登録済み**のため、参加者は実行不要（権限が無い場合はスキップして構いません）。
 
 > **（推測）** 拡張機能はプレビュー段階のため、メニュー名やコマンド名は更新されることがあります。表示が異なる場合は近い名称を探してください。
 
@@ -193,7 +195,17 @@ winget install microsoft.azd
 powershell -ex AllSigned -c "Invoke-RestMethod 'https://aka.ms/install-azd.ps1' | Invoke-Expression"
 ```
 
-インストール後、**ターミナルを開き直してから**バージョンを確認します（`azd` が PATH に反映されます）。
+> **⚠️ インストール直後に `azd: 用語 ... が認識されません` になる場合（重要）**
+> winget は azd を `%LOCALAPPDATA%\Programs\Azure Dev CLI\` に入れ、**ユーザー PATH に追記**します。ところが**すでに起動している VS Code プロセスはインストール前の PATH を保持**しているため、**ターミナルのタブを開き直しても認識されません**（同じ VS Code プロセスの子プロセスなので古い環境を引き継ぐ）。次のどちらかで解決します。
+>
+> **方法1（再起動不要・確実）— 現在のセッションの PATH をレジストリから再読込:**
+> ```powershell
+> $env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
+> ```
+>
+> **方法2 — VS Code 本体を完全に再起動**（ターミナル タブを閉じるだけでは不十分。ウィンドウごと閉じて開き直す）。
+
+インストール後、バージョンを確認します。
 
 ```powershell
 azd version
@@ -201,18 +213,184 @@ azd version
 
 > **（注）** macOS は `brew install azure-dev`、Linux は `curl -fsSL https://aka.ms/install-azd.sh | bash` でインストールできます。詳細は [Install azd](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd) を参照。
 
-### デプロイの流れ
+### デプロイの流れ（ハンズオン手順：Toolkit で作成 → デプロイのみ CLI）
+
+このハンズオン環境では、**VS Code（Foundry Toolkit）からの Hosted Agent デプロイがネットワーク制約で失敗**します。そこで、**エージェントの作成（Create agent）は Toolkit で行い、デプロイだけを CLI（`azd`）に切り替えます**。
+
+Toolkit の **Create agent** を実行すると、エージェント用フォルダー（例 `my-agent-xxxxxx`）が作成され、**その中に `azure.yaml`（azd 用の統合マニフェスト）も一緒に生成されます**。この `azure.yaml` がそのまま `azd` のデプロイ設定になるため、**`azd ai agent init` は実行不要**です。
+
+> **前提:** Toolkit の Create agent が完了し、フォルダー内に `azure.yaml` と `src/<agent-name>/`（`main.py`・`requirements.txt`・`Dockerfile` など）がある状態。まだの場合は先に Toolkit でエージェントを作成してください。
+
+> **✅ ポイント：`azd provision` は実行しません（既存プロジェクトへは不要）。**
+> このハンズオンは **Step 3 で作った既存の Foundry プロジェクトに Hosted Agent を登録するだけ**です。これは **データプレーンの操作**で、`azd deploy` だけで完結します。
+> `azd provision` は「リソース グループや Application Insights などのインフラを**新規作成**する」サブスクリプション スコープの操作で、実行すると **サブスクリプション レベルの権限**（`Microsoft.Resources/deployments/write` など）が要求され、権限のない参加者は `AuthorizationFailed`（403）になります。既存インフラを使う本ハンズオンでは**不要**なので実行しません。
+>
+> **必要な権限（参加者）:** 対象 Foundry プロジェクトに **Foundry Project Manager**（エージェント登録に必要なデータプレーン権限）。サブスクリプション レベルのロールは不要です。
+
+#### 手順 1. エージェント フォルダーでターミナルを開く
+
+Toolkit が作成したフォルダー（`azure.yaml` があるフォルダー）をカレントにします。VS Code でそのフォルダーを開いていれば、ターミナルはそこがカレントになっています。
 
 ```powershell
-azd auth login             # Azure にサインイン（未サインインの場合。ブラウザーが開く）
-azd ai agent init          # ひな形作成
-azd provision              # 必要なリソースをプロビジョニング
-azd deploy                 # Hosted Agent をデプロイ
-azd ai agent invoke "こんにちは、あなたは何ができますか？"   # 動作確認
-azd ai agent monitor --follow   # トレース/ログを追う
+cd <Toolkit が作成した agent フォルダー>   # 例: C:\Users\user02\AIFoundryProjects\my-agent-xxxxxx
 ```
 
+#### 手順 2. Azure にサインイン
+
+```powershell
+azd auth login
+```
+
+ブラウザーが開くので、ハンズオンで使うアカウント（例: `admin@M365CPI65139919.onmicrosoft.com`）でサインインします。すでにサインイン済みならスキップされます。
+
+#### 手順 3. デプロイ先の既存プロジェクトを指定
+
+まず azd 環境を作成し、Step 3 で使った**既存の Foundry プロジェクト**を 2 つの環境変数で指定します。**両方とも `azd deploy` に必須**です。
+
+```powershell
+azd env new dev                                                   # azd 環境を作成（名前は任意。既にあればスキップ）
+
+# ① プロジェクトの ARM リソース ID（azd deploy が登録先プロジェクトを特定するのに必須）
+azd env set AZURE_AI_PROJECT_ID "/subscriptions/<subId>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<account>/projects/<project>"
+
+# ② プロジェクト エンドポイント（★ホストは「カスタム サブドメイン」を使う。リソース名ではない）
+azd env set FOUNDRY_PROJECT_ENDPOINT "https://<customSubDomain>.services.ai.azure.com/api/projects/<project>"
+
+# ③ エージェントが使うモデル デプロイ名（★このプロジェクトの既存チャット モデルのデプロイ名）
+azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME gpt-5-mini
+
+azd env get-values                                                # 3 つの値が既存プロジェクトを指しているか確認
+```
+
+> **★ モデル デプロイ名（`AZURE_AI_MODEL_DEPLOYMENT_NAME`）は必須です。**
+> Toolkit の Create agent 画面（環境変数）でこの欄が**空だと、Hosted Agent が使うモデルが決まらず動きません**。**このプロジェクトに存在する既存のチャット モデルの「デプロイ名」**を入れてください（このハンズオンでは **`gpt-5-mini`**）。埋め込み用（`text-embedding-*`）は**チャット エージェントには使えません**。
+>
+> **利用可能なデプロイ名の調べ方:**
+> ```powershell
+> az cognitiveservices account deployment list -n <account> -g <rg> --query "[].{name:name, model:properties.model.name}" -o table
+> ```
+> 表示された `name`（デプロイ名）のうち、チャット モデル（`gpt-*` など）を選びます。
+
+> **★★ 最重要：エンドポイントのホスト名は「リソース名」ではなく「カスタム サブドメイン」を使う ★★**
+> Foundry（Cognitive Services）アカウントは、**アカウント リソース名**と**データプレーンのカスタム サブドメイン**が**異なる**ことがあります。`azd deploy` はエンドポイントの**ホスト名をそのまま DNS で解決**するため、リソース名を使うと `dial tcp: lookup ...: no such host`（名前解決失敗）で失敗します。
+>
+> | 形式 | 例 | 使えるか |
+> |---|---|---|
+> | ❌ リソース名 | `aif-foundryobs-jyenh.services.ai.azure.com` | **不可（DNS 解決できない）** |
+> | ✅ カスタム サブドメイン | `foundryobsjyenh.services.ai.azure.com` | **これを使う** |
+>
+> **正しいホスト名の調べ方（どちらか）:**
+> - **Foundry ポータル:** 対象プロジェクトの **Overview（概要）** にある **Foundry project endpoint** をそのままコピーする（ここには正しいカスタム サブドメインが入っています）。
+> - **CLI:** `az cognitiveservices account show -n <account> -g <rg> --query "properties.endpoints" -o json` を実行し、**`"AI Foundry API"`** の値（`https://<customSubDomain>.services.ai.azure.com/`）のホスト名を使う。`properties.customSubDomainName` がカスタム サブドメイン名です。
+
+> **AZURE_AI_PROJECT_ID の調べ方:** `az cognitiveservices account show` などで確認するか、Foundry ポータルのプロジェクト設定から ARM リソース ID をコピーします。形式は `/subscriptions/.../resourceGroups/.../providers/Microsoft.CognitiveServices/accounts/<account>/projects/<project>` です。
+
+> **（このハンズオン環境の実際の値・参考）**
+> - `AZURE_AI_PROJECT_ID` = `/subscriptions/d1bf4d07-2dac-43a8-9060-4d5274fc7e33/resourceGroups/rg-foundryobs-eastus2/providers/Microsoft.CognitiveServices/accounts/aif-foundryobs-jyenh/projects/proj-foundryobs-jyenh`
+> - `FOUNDRY_PROJECT_ENDPOINT` = `https://foundryobsjyenh.services.ai.azure.com/api/projects/proj-foundryobs-jyenh` ← **ホストは `foundryobsjyenh`（カスタム サブドメイン）。`aif-foundryobs-jyenh` ではない。**
+
+#### 手順 4. デプロイ（★ここだけ CLI・`provision` は実行しない）
+
+```powershell
+azd deploy
+```
+
+`azure.yaml` の Hosted Agent 構成に沿って、**手順 3 で指定した既存の Foundry プロジェクトに Hosted Agent が登録**されます。`ai-project` と Hosted Agent の 2 つが `Done` になり、最後に `SUCCESS: Your application was deployed to Azure ...` が表示されれば完了です。
+
+> **（注）** `azd provision` は実行しません（手順冒頭のポイント参照）。既存プロジェクトへの登録は `azd deploy` だけで完結します。
+>
+> **デプロイ成功時の出力例:**
+> ```text
+>   ● ai-project                                    Done   1s
+>   ● agent-framework-agent-basic-responses         Done   1m37s
+> - Agent playground (portal): https://ai.azure.com/...
+> - Agent endpoint (responses): https://<customSubDomain>.services.ai.azure.com/api/projects/<project>/agents/.../endpoint/protocols/openai/responses?api-version=v1
+> SUCCESS: Your application was deployed to Azure in 1 minute 37 seconds.
+> ```
+
+#### 手順 5. 動作確認
+
+```powershell
+azd ai agent invoke "こんにちは、あなたは何ができますか？"   # 応答が返れば成功
+azd ai agent monitor --follow                                # トレース/ログを追う（Ctrl+C で終了）
+```
+
+Foundry ポータルの対象プロジェクトの **Agents** 一覧にも、デプロイした Hosted Agent が表示されます。
+
+> **（注）** 片付け時は `azd down` で作成した付随リソースを削除できます（既存 Foundry プロジェクト自体は別管理）。詳細は [Step 11 — クリーンアップ](step11-cleanup.md) を参照。
+
+#### （参考）Toolkit を使わず CLI だけで作成する場合
+
+Toolkit を使わずゼロから CLI で作りたい場合は、空フォルダーで `azd ai agent init` を実行してひな形を作成します（ウィザードでテンプレート／サブスク／Foundry プロジェクト／モデルを選択）。既存プロジェクトに入れたい場合は **`Use an existing Foundry project`** を選びます（`Create a new...` を選ぶと新規プロジェクトが作られます）。`init` の時点でデプロイ先プロジェクトが決まり、環境変数（`AZURE_AI_PROJECT_ID` / `FOUNDRY_PROJECT_ENDPOINT`）も設定されます。その後は上記の手順 4〜5（`azd deploy` → 動作確認）と同じです（**`provision` は不要**）。
+
+#### （参考）`azd ai agent init` で何が作られるか（詳しく）
+
+`azd ai agent init` は「Hosted Agent を**ビルド・ローカル実行・デプロイ**するための一式（ひな形プロジェクト）」をカレント ディレクトリに生成します。対話ウィザードで次を順に選びます。
+
+| プロンプト | 内容 |
+|---|---|
+| **Agent template** | フレームワーク・言語（Python / .NET）別のテンプレートから選択。エージェント名はテンプレート既定値になる（`--agent-name` で変更可）。 |
+| **Azure subscription** | Foundry プロジェクトを探す／作るためのサブスク。 |
+| **Foundry project** | 既存プロジェクトを選ぶ、または新規作成（新規時はリージョンも選ぶ）。 |
+| **Model deployment** | 既存のモデル デプロイを選ぶ、または未指定ならテンプレート既定で作成。 |
+
+ウィザード完了後、次のファイル／フォルダーが生成されます（Azure リソースはまだ**作られません**。`init` は**ローカルにファイルを置くだけ**）。
+
+| 生成物 | 場所 | 役割 |
+|---|---|---|
+| **`azure.yaml`** | プロジェクト ルート | **統合プロジェクト マニフェスト**。`azd` プロジェクト設定と Hosted Agent 構成を1本に集約する。`services:` 配下に、モデルを持つ `azure.ai.project` サービスと、それを `uses:` で参照する `azure.ai.agent` サービスを定義し、`azd` がプロビジョニング／デプロイ時に依存関係を解決する。**現行はこの1ファイルに集約**（旧 `agent.manifest.yaml` / `agent.yaml` は非推奨）。 |
+| **エージェント ソース** | `src/<agent-name>/` | `main.py`（ホスティング ラッパー付きのエージェント本体。`responses` などのプロトコルで HTTP を受ける）、`requirements.txt`（依存）、`.dockerignore` など。ローカル実行時はこの `main.py` が `http://localhost:8088` で起動する。 |
+| **`Dockerfile`** | `src/<agent-name>/` | コンテナ デプロイ（`--deploy-mode container`）用。**Code（ZIP）デプロイでは未使用**だが同梱される。 |
+| **azd 環境** | `.azure/<ディレクトリ名>-dev/` | `<ディレクトリ名>-dev` という azd 環境を作成し、選んだ Foundry プロジェクトの情報（`FOUNDRY_PROJECT_ENDPOINT`、`AZURE_AI_MODEL_DEPLOYMENT_NAME` など）を格納。以降の `azd provision` / `azd deploy` / `azd ai agent run` がこの環境値を参照する。 |
+
+補足:
+- **既定は bicep-less**（インフラ用 Bicep は生成されない。必要になれば後で eject 可能）。`azd provision` はインフラ（リソース グループや Application Insights など）を**新規作成**する操作で、**既存プロジェクトへデプロイする本ハンズオンでは不要**（サブスクリプション権限も要求される）。既存プロジェクトへの登録は `azd deploy` だけで完結する。
+- 既存のエージェント コードがあるディレクトリで `init` すると、丸ごとのひな形ではなく **`azure.yaml` のサービス エントリと（コンテナ時のみ）`Dockerfile`** だけが追加される（Bring your own code）。
+- 特定サンプルから始めたい場合は `azd ai agent init -m <azure.yaml の URL>` でそのサンプルを取り込める。
+
 > **（注）** 片付け時は `azd down` で作成したリソースを削除できます。詳細は [Step 11 — クリーンアップ](step11-cleanup.md) を参照。
+
+## トラブルシュート：デプロイは成功するが Playground 実行時に失敗する
+
+`azd deploy` が成功し、コンテナの起動チェック（readiness）も 200 なのに、**Playground から質問を送ると実行時に失敗する**ことがあります。ログには次のような特徴が出ます。
+
+- `Creating response ... store=True`（応答生成時の store フラグが True）
+- `Resilient task subsystem missing in hosted environment ...`（＝これが致命的エラー本体）
+- `ModuleNotFoundError: No module named 'agents'`（← これは **無害**。任意の A365 OpenAI Agents 計装が無いだけで、失敗原因ではない）
+
+### 原因：`requirements.txt` 未固定が beta 版ランタイムを引き込む
+
+ホスティング パッケージ `agent-framework-foundry-hosting`（最新 `1.0.0b260813`）は、依存として **`azure-ai-agentserver-core >=2.1.0b1` / `azure-ai-agentserver-responses >=2.1.0b1`（beta 版）を強制**します。`requirements.txt` を**バージョン未固定**にしていると、リモート ビルドの `pip install --pre` が必ずこの **2.1.0b* beta** を取得します。この beta 版には、hosted 環境で `store=True` の応答経路に入ると **resilient task subsystem が未プロビジョニングでも参照してしまい落ちる**回帰があります。
+
+> **（注意）`main.py` の `default_options={"store": False}` では直りません。** これは **エージェント→モデル クライアント（`FoundryChatClient`）呼び出しの既定値**であり、**Foundry ホスト側 Responses エンドポイントの store フラグ（Playground 既定 = True）とは別レイヤー**です。そのためコードを `store=False` にしても、ログには `store=True` が出続けます。
+
+### 対処：GA（安定版）に固定して再デプロイ
+
+`requirements.txt` を GA `2.0.0` 系に固定し、beta を引き込まないようにします。
+
+```text
+agent-framework-core
+agent-framework-foundry
+azure-ai-agentserver-core==2.0.0
+azure-ai-agentserver-responses==2.0.0
+azure-identity
+python-dotenv
+```
+
+> **（注）** `agent-framework-foundry-hosting` の**最新版（`1.0.0b260813`）は `>=2.1.0b1` を要求するため GA 2.0.0 と両立しません**。hosting を使う場合は、GA `azure-ai-agentserver-*==2.0.0` と依存解決できる**古い hosting 版に固定**するか、hosting を外して `ResponsesHostServer` 相当を直接構成してください（版ごとの依存は `pip index versions` 等で確認）。
+
+固定したら再デプロイします。
+
+```powershell
+azd deploy
+```
+
+> **（重要）** `azd deploy` はコード無変更だと **no-op（コンテナ非再起動）**になることがあります。`requirements.txt` の変更が確実にリモート ビルド＆新コンテナ起動を起こすことを確認してください（起きない場合は `main.py` に微小な変更マーカーを入れて強制ビルドします）。
+
+### 切り分けのコツ
+- **正確なエラー文言を先に確定する:** `azd ai agent monitor --follow`（または `--tail <N>`）でコンテナ ログを取得し、致命的エラーが `Resilient task subsystem ...` か、それとも 4xx/5xx かをロックしてから requirements を変更する。
+- `ModuleNotFoundError: No module named 'agents'` は無視してよい（A365 計装が無いだけ）。
+- ログの `model=`（空）は **応答生成時の 1 フィールドで表示上の問題**。モデルは `FoundryChatClient` に埋め込まれているので、起動時に `model_name` 環境変数が未設定なら例外で落ちる＝起動できている時点でモデルは設定済み。
 
 ## 時間が足りないとき（最小構成）
 - 本 Step は**任意**です。デプロイまで行わず、**「Hosted Agent とは何か（マネージドにコードを公開する仕組み）」** を読んで理解するだけでも目的は達成できます。
