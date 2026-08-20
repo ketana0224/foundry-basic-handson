@@ -326,30 +326,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    > **（重要・エンドポイントの落とし穴／`no such host` の原因）** `FOUNDRY_PROJECT_ENDPOINT` のホストは **カスタム サブドメイン**（例: `foundryobsjyenh.services.ai.azure.com`）である必要があります。**リソース名そのまま**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）だと `azd deploy` の Agent 登録が `dial tcp: lookup aif-foundryobs-jyenh.services.ai.azure.com: no such host` で失敗します。`azd deploy` はこの `FOUNDRY_PROJECT_ENDPOINT` のホストへ `/api/projects/<プロジェクト>/agents/...` を叩くため、**ここを間違えると DNS 解決できません**。ポータルの「プロジェクト エンドポイント」に表示される値（カスタム サブドメイン）をそのまま使ってください。
 
-3. **`azure.yaml` を既存プロジェクト接続用に編集**する。`ai-project` サービスに `endpoint` を追加し、**新規モデルを作らないよう `deployments` ブロックを削除**します（既存プロジェクトには使用するモデルが既にデプロイ済みのため）。
-
-   > **（init で `Skip this model entirely` を選んだ場合）** A 節のモデル取り扱いプロンプトで **`Skip this model entirely (remove from azure.yaml)`** を選んでいれば、**`deployments` ブロックは既に除去済み**です。その場合は下記の**削除は不要**で、**`endpoint` の追加とサービス名のリネームだけ**を行ってください（念のため `deployments` が残っていないか確認）。
-
-   変更前（ひな形で `Deploy as specified` を選んだ場合など、`deployments` が残っているとき）:
-
-   ```yaml
-   services:
-     agent-framework-agent-basic-responses:
-       project: src/agent-framework-agent-basic-responses
-       host: azure.ai.agent
-       # ...（以降はそのまま）
-     ai-project:
-       host: azure.ai.project
-       deployments:
-         - name: gpt-5.4-mini
-           model:
-             format: OpenAI
-             name: gpt-5.4-mini
-             version: '2026-03-17'
-           sku:
-             name: GlobalStandard
-             capacity: 10
-   ```
+3. **`azure.yaml` を既存プロジェクト接続用に編集**する。`ai-project` サービスに `endpoint` を追加し、**エージェント サービス名を一意にリネーム**します（既存プロジェクトには使用するモデルが既にデプロイ済みのため、`deployments` は空の `[]` のままで構いません）。
 
    変更後:
 
@@ -361,14 +338,13 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
        # ...（以降はそのまま）
      ai-project:
        host: azure.ai.project
-       endpoint: ${FOUNDRY_PROJECT_ENDPOINT}
+       deployments: []                          # ← 空のまま（既存プロジェクトのモデルを使う）
+       endpoint: ${FOUNDRY_PROJECT_ENDPOINT}    # ← この 1 行を追加
    ```
 
    > **（重要・エージェント名の一意化）** `azure.ai.agent` の**サービス名（キー）が、共有プロジェクト上のエージェント名**になります。ひな形の既定名（例: `agent-framework-agent-basic-responses`）のままだと他の受講者と衝突するため、上のように **`userNN` を含む一意名にリネーム**してください（英小文字・数字・`-` のみ）。
 
    > **（なぜ）** `azure.ai.project` の `endpoint` を設定すると、`azd` は**新規プロジェクトを作らず、その既存プロジェクトへ接続**します（省略すると新規作成）。ただし **Hosted Agent の登録先を確定させるには、手順 2 で設定した `AZURE_AI_PROJECT_ID`（プロジェクトのリソース ID）が必要**です（`endpoint` だけでは `azd deploy` が `AZURE_AI_PROJECT_ID is not set` で止まります）。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/azure-yaml-reference>
-   >
-   > **（`deployments` を残す場合）** 既存プロジェクトの `gpt-5.4-mini` に合わせるなら、`name` / `model.name` を `gpt-5.4-mini`、`version` を実デプロイのバージョンに合わせます。バージョンが不明なときは削除版が確実です。
 
 4. **`azd deploy` でデプロイ**する。
 
