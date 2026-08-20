@@ -91,6 +91,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    | 1 | **Select a language** | **Python**（↑↓ で選び Enter） | もう一方は C#。本手順は Python 前提。 |
    | 2 | **Select a starter template** | **Basic agent (Responses, Agent Framework, Python)** | `responses` プロトコル 2.0.0 の最小構成。一覧には `Agent with Local Tools` / `Agent with MCP Tools` / `Basic agent (Invocations, …)` / `Note-taking agent (…without a framework…)` などもあるが、**`Basic agent (Responses, Agent Framework, Python)`** を選ぶ。 |
    | 3 | **Select a Foundry project to host your agent** | **Use an existing Foundry project** | 本ハンズオンは**既存の共有 Foundry プロジェクト**を使うため、`Create a new Foundry project` ではなく **`Use an existing Foundry project`** を選ぶ。続けて表示される一覧から**共有プロジェクト（例: `proj-foundryobs-jyenh`）を選択**する。 |
+   | 4 | **How would you like to proceed?**（モデルの取り扱い） | **Skip this model entirely (remove from azure.yaml)** | ひな形の `azure.yaml` は既定で `gpt-5.4-mini` の**新規モデルデプロイ**を作ろうとしますが、共有プロジェクトには**既に `gpt-5-mini` がデプロイ済み**です。受講者11人が各自新規モデルを作ると**クォータ枯渇・重複**になるため、**`Skip this model entirely (remove from azure.yaml)`** を選んで `azure.yaml` からモデル定義を外します（モデル名は後で `AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5-mini` で指定）。`Deploy as specified` / `Choose a different model` は新規デプロイになるので**選ばない**。 |
 
    > **（フォルダー名について）** テンプレート選択後、`azd` は**テンプレート名のフォルダー**を自動作成します（フォルダー名は聞かれません）。例: `Basic agent (Responses, Agent Framework, Python)` を選ぶと `…\AIFoundryProjects\agent-framework-agent-basic-responses\` が作られ、そこへ一式がコピーされます。
    >
@@ -297,7 +298,9 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
 4. **`azure.yaml` を既存プロジェクト接続用に編集**する。`ai-project` サービスに `endpoint` を追加し、**新規モデルを作らないよう `deployments` ブロックを削除**します（既存プロジェクトには使用するモデルが既にデプロイ済みのため）。
 
-   変更前（ひな形）:
+   > **（init で `Skip this model entirely` を選んだ場合）** A 節のモデル取り扱いプロンプトで **`Skip this model entirely (remove from azure.yaml)`** を選んでいれば、**`deployments` ブロックは既に除去済み**です。その場合は下記の**削除は不要**で、**`endpoint` の追加とサービス名のリネームだけ**を行ってください（念のため `deployments` が残っていないか確認）。
+
+   変更前（ひな形で `Deploy as specified` を選んだ場合など、`deployments` が残っているとき）:
 
    ```yaml
    services:
