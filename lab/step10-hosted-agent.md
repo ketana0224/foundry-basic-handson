@@ -99,6 +99,11 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    import asyncio
    import os
 
+   from dotenv import load_dotenv
+
+   # .env をローカル起動時に読み込む（Hosted 実行時は Foundry が環境変数を注入するため無害）
+   load_dotenv()
+
    from azure.ai.agentserver.responses import (
        CreateResponse,
        ResponseContext,
@@ -198,6 +203,8 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    FOUNDRY_PROJECT_ENDPOINT=<Foundry プロジェクトのエンドポイント>
    AZURE_AI_MODEL_DEPLOYMENT_NAME=<Step 2 で使ったモデル デプロイ名>
    ```
+
+   > **（重要）** `main.py` の先頭で `load_dotenv()` を呼んでいるため、この `.env` は **`main.py` と同じフォルダー**に置きます。置き忘れると起動時に `KeyError: 'FOUNDRY_PROJECT_ENDPOINT'` で落ちます。`.env` を使わず、その場のシェルに直接設定してもかまいません（例: `$env:FOUNDRY_PROJECT_ENDPOINT = "..."`）。
 
    **各値を Foundry ポータルで確認する手順:**
 
