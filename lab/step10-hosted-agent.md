@@ -342,10 +342,6 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
        endpoint: ${FOUNDRY_PROJECT_ENDPOINT}    # ← この 1 行を変更または追加（既にある場合はカスタム サブドメインに直す）
    ```
 
-   > **（重要・エージェント名の一意化）** `azure.ai.agent` の**サービス名（キー）が、共有プロジェクト上のエージェント名**になります。ひな形の既定名（例: `agent-framework-agent-basic-responses`）のままだと他の受講者と衝突するため、上のように **`userNN` を含む一意名にリネーム**してください（英小文字・数字・`-` のみ）。
-
-   > **（なぜ）** `azure.ai.project` の `endpoint` を設定すると、`azd` は**新規プロジェクトを作らず、その既存プロジェクトへ接続**します（省略すると新規作成）。ただし **Hosted Agent の登録先を確定させるには、手順 2 で設定した `AZURE_AI_PROJECT_ID`（プロジェクトのリソース ID）が必要**です（`endpoint` だけでは `azd deploy` が `AZURE_AI_PROJECT_ID is not set` で止まります）。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/azure-yaml-reference>
-
 4. **`azd deploy` でデプロイ**する。
 
    ```powershell
