@@ -419,6 +419,29 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
   azd deploy
   ```
 
+### 症状 G: `azd` をインストールしたのに `azd : 用語 'azd' は … 認識されません`（PATH が効いていない）
+- **原因**: インストーラーが PATH に追加した内容が、**開いたままのターミナル（や VS Code）に反映されていない**。PATH の変更は新しく起動したプロセスにしか伝わらないため、インストール前から開いていたセッションでは `azd` が見つからない。
+- **対処**:
+  1. **ターミナルを開き直す**（VS Code 統合ターミナルはゴミ箱アイコンで閉じて新規に開く）。効かなければ **VS Code 自体を再起動**、最終手段は **サインアウト／再起動**。
+  2. 再起動せずに今のセッションだけ通したい場合は、PATH を再読み込みする。
+     ```powershell
+     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+     azd version   # 認識されれば OK
+     ```
+  3. それでも見つからない場合は、実体があるか確認してフルパスで叩く（既定の配置先）。
+     ```powershell
+     # 既定の配置先（winget / MSI インストール）
+     Get-ChildItem "$env:LOCALAPPDATA\Programs\Azure Dev CLI\azd.exe" -ErrorAction SilentlyContinue
+     & "$env:LOCALAPPDATA\Programs\Azure Dev CLI\azd.exe" version
+     ```
+     実体があるのに PATH に無い場合は、上記フォルダーを **ユーザー環境変数 Path** に追加してターミナルを開き直す。
+  4. インストール自体が未完了だった場合は入れ直す。
+     ```powershell
+     winget install microsoft.azd
+     # もしくは
+     powershell -ExecutionPolicy Bypass -Command "Invoke-RestMethod https://aka.ms/install-azd.ps1 | Invoke-Expression"
+     ```
+
 ### 切り分けのコツ
 - **起動できない**（Playground/`invoke` が返らない）→ 症状 A（パッケージ）を疑う。まず Echo 版に差し替えて「モデル無しで起動するか」を確認する。
 - **起動はするが応答がエラー**→ 症状 B（RBAC）／症状 C（モデル名）を疑う。`azd ai agent monitor --follow` でコンテナ ログを見る。
