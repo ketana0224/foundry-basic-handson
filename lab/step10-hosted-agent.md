@@ -291,8 +291,6 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
 ### C. Hosted Agent としてデプロイする
 
-> **⚠️ このハンズオン環境について** 本ハンズオン環境は **プライベート ネットワーク構成**のため、**VS Code Foundry Toolkit の「Deploy Hosted Agent」ボタン（GUI）からのデプロイは失敗します**（`*.api.azureml.ms` を名前解決できず `fetch failed` になる）。本手順の **`azd` CLI** デプロイなら問題ありません。
-
 デプロイは `azd` を使います。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定すると、**`azd provision` は新規プロジェクトを作らず既存プロジェクトへ接続**します。その後 `azd deploy` で Hosted Agent を登録します。
 
 1. **プロジェクト ルートへ移動**して azd 環境を作る。
