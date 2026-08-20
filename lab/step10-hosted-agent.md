@@ -84,13 +84,14 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    azd ai agent init
    ```
 
-   対話プロンプトで次のとおり選ぶ（文言は版により多少変わります）。
+   対話プロンプトで次のとおり選ぶ（文言は版により多少変わります。画面の `azd` バージョンは `v1.0.0-beta.10` など）。
 
-   | プロンプト | 選ぶ値（このハンズオン） | 補足 |
-   |---|---|---|
-   | テンプレート | **Basic Hosted Agent**（Python / Responses API） | 追加ツール不要の最小構成。`azure.yaml`（`responses` プロトコル 2.0.0）と一式が生成される。 |
-   | プロジェクト／フォルダー名 | 既定のままでOK（例: `my-agent-xxxx`） | 任意で変更可。 |
-   | 環境設定（Environment） | **Skip / 最小** | デプロイ時に Foundry が環境変数を自動注入するため、ここでは接続不要。 |
+   | 順 | プロンプト | 選ぶ値（このハンズオン） | 補足 |
+   |---|---|---|---|
+   | 1 | **Select a language** | **Python**（↑↓ で選び Enter） | もう一方は C#。本手順は Python 前提。 |
+   | 2 | **Select a starter template** | **Basic agent (Responses, Agent Framework, Python)** | `responses` プロトコル 2.0.0 の最小構成。一覧には `Agent with Local Tools` / `Agent with MCP Tools` / `Basic agent (Invocations, …)` / `Note-taking agent (…without a framework…)` などもあるが、**`Basic agent (Responses, Agent Framework, Python)`** を選ぶ。 |
+   | 3 | プロジェクト／フォルダー名 | 既定のままでOK（例: `my-agent-xxxx`） | 任意で変更可。 |
+   | 4 | 環境設定（Environment） | **Skip / 最小** | デプロイ時に Foundry が環境変数を自動注入するため、ここでは接続不要。 |
 
    > **（なぜこれか）** 最小構成で `azure.yaml`（`responses` プロトコル 2.0.0）とプロジェクト構造が生成されるため。**このひな形から `main.py` と `requirements.txt` を GA 版に差し替えて使います。** `azure.yaml` は C 節で既存プロジェクト接続用に 1 か所だけ編集します（`ai-project` に `endpoint` を追加）。
    >
