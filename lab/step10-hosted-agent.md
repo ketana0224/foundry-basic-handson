@@ -108,10 +108,23 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    > ```
    >
    > これは `azd` が**リソース名ホスト**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）でエンドポイントを組み立てているためで、このホストは **DNS 解決できません**（正しいのは**カスタム サブドメイン** `foundryobsjyenh.services.ai.azure.com`）。ここでは「エージェント存在チェックができなかった」だけの**非致命的警告**なので init は続行して構いませんが、**このままでは後続の `azd provision`/`deploy` がエンドポイント不到達で失敗**します。**必ず C 節の C3 で `FOUNDRY_PROJECT_ENDPOINT` をカスタム サブドメインに設定**してください。
-   >
-   > **（`AZURE_AI_MODEL_DEPLOYMENT_NAME` の入力）** モデルを `Skip this model entirely` した場合、init の最後に `Enter a value for AZURE_AI_MODEL_DEPLOYMENT_NAME:` を聞かれます。**共有プロジェクトに実在するデプロイ名**（本ハンズオンでは `gpt-5.4-mini`）を入力してください。
 
-4. 生成物を確認する。**ルートに `azure.yaml`**、コードは **`src\<テンプレート名>\`** の下にあります（例: `src\agent-framework-agent-basic-responses\` の `main.py` / `requirements.txt`）。以降このフォルダーで作業します。
+4. **`AZURE_AI_MODEL_DEPLOYMENT_NAME` の値を入力する。** 手順 3 でモデルを `Skip this model entirely` すると、init の最後に次の入力を求められます。
+
+   ```text
+   azure.yaml references environment variables that need to be configured:
+   ? Enter a value for AZURE_AI_MODEL_DEPLOYMENT_NAME: [Type ? for hint]
+   ```
+
+   ここに**共有プロジェクトに実在するデプロイ名**を入力して Enter します。**本ハンズオンでは `gpt-5.4-mini`** を入力してください。
+
+   ```text
+   gpt-5.4-mini
+   ```
+
+   > **（ヒント）** デプロイ名が分からないときは Foundry ポータルの **「モデル + エンドポイント」→「デプロイ済みモデル」** タブで「名前」列の値を確認できます（後述の C3 の手順でも確認できます）。
+
+5. 生成物を確認する。**ルートに `azure.yaml`**、コードは **`src\<テンプレート名>\`** の下にあります（例: `src\agent-framework-agent-basic-responses\` の `main.py` / `requirements.txt`）。以降このフォルダーで作業します。
 
    > **（参考・VS Code 派の人へ）** VS Code の Foundry Toolkit 拡張機能の **`Create new Hosted Agent`** も内部で `azd ai agent init` を実行するだけなので、生成物は同じです。拡張機能を入れている場合はそちらの GUI から作ってもかまいません（本手順は CLI で統一します）。
 
