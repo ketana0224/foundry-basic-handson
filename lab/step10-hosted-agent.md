@@ -29,7 +29,15 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 - **VS Code** と **Foundry Toolkit 拡張機能**（プレリリース チャネル）。取得: <https://aka.ms/foundrytk>
 - **Azure Developer CLI（azd）1.27.1 以上**。
 - Foundry プロジェクトに対して **Contributor** ロールを持っていること。
-- リソース プロバイダーの登録（初回のみ）:
+- **Azure へのサインイン**（未サインインの場合）。VS Code の Foundry Toolkit デプロイ・`azd`・`az` はいずれも Azure 認証が必要です。まず次でサインインしておきます（ブラウザーが開きます）:
+
+  ```powershell
+  az login
+  ```
+
+  > **（注）** 複数のテナントやサブスクに所属する場合は `az account set --subscription "<サブスク名 or ID>"` で対象を揃えておくと確実です。
+
+- リソース プロバイダーの登録（初回のみ。`az login` 済みであること）:
 
   ```powershell
   az provider register --namespace Microsoft.CognitiveServices
@@ -116,6 +124,11 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    ```
 
 ### B. Hosted Agent としてデプロイする
+
+> **⚠️ 本ハンズオン環境について:** 本ハンズオン環境は**セキュリティ制約（社内ネットワーク境界 / プライベート DNS）**により、**VS Code（Foundry Toolkit）からの Hosted Agent デプロイは実行できません**（デプロイ先の azureml ワークスペース ホスト `*.api.azureml.ms` が解決できず `fetch failed` になります）。そのため、本環境では **CLI（`azd`）でデプロイ**してください。手順は本節末尾の [参考：azd（CLI）で進める場合](#参考azdcliで進める場合) を参照。以下の VS Code ウィザード手順は、制約のない一般的な環境での参考手順です。
+
+> **前提:** デプロイは Azure 上で実行されるため、**Azure にサインイン済み**である必要があります（事前準備の `az login`、または VS Code 左側の Azure サインイン）。未サインインだとウィザードのプロジェクト選択やデプロイでエラーになります。
+
 1. コマンド パレットで **`Foundry Toolkit: Deploy Hosted Agent`** を実行する。**Deploy Hosted Agent** ウィザード（**① Foundry Project Setup → ② Basics → ③ Review + Deploy** の3ステップ）が開く。
 
 2. **① Foundry Project Setup**（デプロイ先のプロジェクトを選ぶ）
@@ -168,7 +181,30 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 ## 参考：azd（CLI）で進める場合
 VS Code を使わず、ターミナルだけで完結させたい場合は次の流れになります（任意）。
 
+### azd（Azure Developer CLI）のインストール
+
+未インストールの場合は、まず azd をインストールします（インストール済みなら次の「デプロイの流れ」へ）。
+
 ```powershell
+# Windows（winget を使う場合。推奨）
+winget install microsoft.azd
+
+# winget が使えない場合（PowerShell インストール スクリプト）
+powershell -ex AllSigned -c "Invoke-RestMethod 'https://aka.ms/install-azd.ps1' | Invoke-Expression"
+```
+
+インストール後、**ターミナルを開き直してから**バージョンを確認します（`azd` が PATH に反映されます）。
+
+```powershell
+azd version
+```
+
+> **（注）** macOS は `brew install azure-dev`、Linux は `curl -fsSL https://aka.ms/install-azd.sh | bash` でインストールできます。詳細は [Install azd](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd) を参照。
+
+### デプロイの流れ
+
+```powershell
+azd auth login             # Azure にサインイン（未サインインの場合。ブラウザーが開く）
 azd ai agent init          # ひな形作成
 azd provision              # 必要なリソースをプロビジョニング
 azd deploy                 # Hosted Agent をデプロイ
