@@ -98,15 +98,16 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    |---|---|---|---|
    | 1 | **Select a language** | **Python**（↑↓ で選び Enter） | もう一方は C#。本手順は Python 前提。 |
    | 2 | **Select a starter template** | **Basic agent (Responses, Agent Framework, Python)** | `responses` プロトコル 2.0.0 の最小構成。一覧には `Agent with Local Tools` / `Agent with MCP Tools` / `Basic agent (Invocations, …)` / `Note-taking agent (…without a framework…)` などもあるが、**`Basic agent (Responses, Agent Framework, Python)`** を選ぶ。 |
-   | 3 | **Select a Foundry project to host your agent** | **Use an existing Foundry project** | 本ハンズオンは**既存の共有 Foundry プロジェクト**を使うため、`Create a new Foundry project` ではなく **`Use an existing Foundry project`** を選ぶ。続けて表示される一覧から**共有プロジェクト（例: `proj-foundryobs-jyenh`）を選択**する。 |
-   | 4 | **How would you like to proceed?**（モデルの取り扱い） | **Skip this model entirely (remove from azure.yaml)** | ひな形の `azure.yaml` は既定で `gpt-5.4-mini` の**新規モデルデプロイ**を作ろうとしますが、共有プロジェクトには**既に `gpt-5.4-mini` がデプロイ済み**です。受講者11人が各自新規モデルを作ると**クォータ枯渇・重複**になるため、**`Skip this model entirely (remove from azure.yaml)`** を選んで `azure.yaml` からモデル定義を外します（モデル名は次の順5で指定）。`Deploy as specified` / `Choose a different model` は新規デプロイになるので**選ばない**。 |
-   | 5 | **Enter a value for AZURE_AI_MODEL_DEPLOYMENT_NAME:** | **`gpt-5.4-mini`**（手入力して Enter） | 順4でモデルを Skip すると、init の最後に `azure.yaml` が参照する環境変数の値を聞かれます。**共有プロジェクトに実在するデプロイ名**（本ハンズオンでは `gpt-5.4-mini`）を手入力します。デプロイ名は Foundry ポータルの **「モデル + エンドポイント」→「デプロイ済みモデル」** タブの「名前」列で確認できます。 |
+   | 3 | **Agent name**（`Enter a name for your agent` 等） | **`agent-framework-agent-basic-responses-userNN`**（`userNN` は自分の番号。例 `…-user02`） | **★最重要★** 既定値は **`agent-framework-agent-basic-responses`** ですが、**そのまま Enter せず**、末尾に自分の番号を付けて一意化します。**ここで入力した名前が、フォルダー名・`azure.yaml` のサービス名・そして Foundry ポータルに登録される<u>エージェント名</u>すべてになります**。本ハンズオンは11人が**同一の共有プロジェクト**を使うため、既定名のままだと**受講者どうしで衝突・上書き**します。<br>※ `azd` の版によってはこのプロンプトの**表示位置が前後**したり、**表示されない**ことがあります。表示されなかった場合はフォルダー名＝エージェント名（既定 `agent-framework-agent-basic-responses`）になるので、**C 節 C3 で `azure.yaml` のサービス名を `…-userNN` にリネーム**して一意化してください。 |
+   | 4 | **Select a Foundry project to host your agent** | **Use an existing Foundry project** | 本ハンズオンは**既存の共有 Foundry プロジェクト**を使うため、`Create a new Foundry project` ではなく **`Use an existing Foundry project`** を選ぶ。続けて表示される一覧から**共有プロジェクト（例: `proj-foundryobs-jyenh`）を選択**する。 |
+   | 5 | **How would you like to proceed?**（モデルの取り扱い） | **Skip this model entirely (remove from azure.yaml)** | ひな形の `azure.yaml` は既定で `gpt-5.4-mini` の**新規モデルデプロイ**を作ろうとしますが、共有プロジェクトには**既に `gpt-5.4-mini` がデプロイ済み**です。受講者11人が各自新規モデルを作ると**クォータ枯渇・重複**になるため、**`Skip this model entirely (remove from azure.yaml)`** を選んで `azure.yaml` からモデル定義を外します（モデル名は次の順6で指定）。`Deploy as specified` / `Choose a different model` は新規デプロイになるので**選ばない**。 |
+   | 6 | **Enter a value for AZURE_AI_MODEL_DEPLOYMENT_NAME:** | **`gpt-5.4-mini`**（手入力して Enter） | 順5でモデルを Skip すると、init の最後に `azure.yaml` が参照する環境変数の値を聞かれます。**共有プロジェクトに実在するデプロイ名**（本ハンズオンでは `gpt-5.4-mini`）を手入力します。デプロイ名は Foundry ポータルの **「モデル + エンドポイント」→「デプロイ済みモデル」** タブの「名前」列で確認できます。 |
 
    > **（フォルダー名について）** テンプレート選択後、`azd` は**テンプレート名のフォルダー**を自動作成します（フォルダー名は聞かれません）。例: `Basic agent (Responses, Agent Framework, Python)` を選ぶと `…\AIFoundryProjects\agent-framework-agent-basic-responses\` が作られ、そこへ一式がコピーされます。
    >
    > **（なぜこれか）** 最小構成で `azure.yaml`（`responses` プロトコル 2.0.0）とプロジェクト構造が生成されるため。**このひな形から `main.py` と `requirements.txt` を GA 版に差し替えて使います。** 手順 3 で**既存プロジェクトを選ぶ**とエンドポイント接続が構成されますが、`azure.yaml` は念のため C 節でも接続用に確認・編集します（`ai-project` に `endpoint` を追加）。
    >
-   > **（重要・複数受講者の一意名）** 本ハンズオンは **user01〜user11 が同一の共有 Foundry プロジェクト**を使います。Hosted Agent は **`azure.yaml` のサービス名がそのまま共有プロジェクト上のエージェント名**になるため、**既定名のままだと受講者どうしで衝突・上書き**します。Step 3 / Step 4 と同様に、**自分の番号（`userNN`）を含めて一意化**してください（次の C 節でサービス名を変更します）。
+   > **（重要・複数受講者の一意名）** 本ハンズオンは **user01〜user11 が同一の共有 Foundry プロジェクト**を使います。Hosted Agent の**ポータル登録名は、上の順3「Agent name」プロンプトで入力した名前**（＝フォルダー名／`azure.yaml` サービス名と同じ）になります。**既定名 `agent-framework-agent-basic-responses` のままだと受講者どうしで衝突・上書き**するため、**順3で必ず末尾に自分の番号（`userNN`）を付けて一意化**してください（例 `agent-framework-agent-basic-responses-user02`）。もし順3のプロンプトが表示されなかった版では、**C 節 C3 で `azure.yaml` のサービス名を `…-userNN` にリネーム**すれば同じく一意化できます（`azd deploy` の出力 `Done: Deploying service <名前>` と Playground URL `…/agents/<名前>/…` に反映されます）。
    >
    > **（実機で出る WARNING は想定内）** 手順 3〜4 の途中で次のような警告が出ることがあります。
    >
@@ -326,13 +327,13 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    > **（重要・エンドポイントの落とし穴／`no such host` の原因）** `FOUNDRY_PROJECT_ENDPOINT` のホストは **カスタム サブドメイン**（例: `foundryobsjyenh.services.ai.azure.com`）である必要があります。**リソース名そのまま**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）だと `azd deploy` の Agent 登録が `dial tcp: lookup aif-foundryobs-jyenh.services.ai.azure.com: no such host` で失敗します。`azd deploy` はこの `FOUNDRY_PROJECT_ENDPOINT` のホストへ `/api/projects/<プロジェクト>/agents/...` を叩くため、**ここを間違えると DNS 解決できません**。ポータルの「プロジェクト エンドポイント」に表示される値（カスタム サブドメイン）をそのまま使ってください。
 
-3. **`azure.yaml` を既存プロジェクト接続用に編集**する。`ai-project` サービスに `endpoint` を追加し、**エージェント サービス名を一意にリネーム**します（既存プロジェクトには使用するモデルが既にデプロイ済みのため、`deployments` は空の `[]` のままで構いません）。
+3. **`azure.yaml` を既存プロジェクト接続用に編集**する。`ai-project` サービスに `endpoint` を追加し、**エージェント サービス名が一意（`…-userNN`）になっているか確認**します（B 節の init 順3で userNN を入力していれば**サービス名は既に一意**なので、`endpoint` の追加だけで OK。既定名のままだった場合は下記のようにサービス名を `…-userNN` にリネームして一意化してください）。既存プロジェクトには使用するモデルが既にデプロイ済みのため、`deployments` は空の `[]` のままで構いません。
 
-   変更後:
+   変更後（サービス名が既定のままだった場合の例）:
 
    ```yaml
    services:
-     agent-basic-responses-userNN:   # ← userNN は自分の番号（例: agent-basic-responses-user01）。共有プロジェクトでの衝突を避ける
+     agent-basic-responses-userNN:   # ← userNN は自分の番号（例: agent-basic-responses-user01）。この名前がポータル登録名になる（衝突回避）
        project: src/agent-framework-agent-basic-responses   # ← ソース ディレクトリは変えない
        host: azure.ai.agent
        # ...（以降はそのまま）
@@ -341,6 +342,8 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
        deployments: []                          # ← 空のまま（既存プロジェクトのモデルを使う）
        endpoint: ${FOUNDRY_PROJECT_ENDPOINT}    # ← この 1 行を変更または追加（既にある場合はカスタム サブドメインに直す）
    ```
+
+   > **（サービス名＝ポータル登録名）** `azd deploy` の出力 `Done: Deploying service <名前>` と Playground URL `…/agents/<名前>/versions/1` の `<名前>` が、この `services:` 直下のキー名です。**必ず `<名前>` に自分の `userNN` が含まれていること**を確認してください（含まれていなければ他の受講者と衝突します）。
 
 4. **`azd deploy` でデプロイ**する。
 
