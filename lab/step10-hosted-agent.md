@@ -305,16 +305,16 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    ```powershell
    # サブスクリプション ID（空の環境には入っていないので必須）
-   azd env set AZURE_SUBSCRIPTION_ID "<サブスクリプション ID>"        # az account show --query id -o tsv で確認可
+   azd env set AZURE_SUBSCRIPTION_ID "d1bf4d07-2dac-43a8-9060-4d5274fc7e33"        # az account show --query id -o tsv で確認可
 
    # リージョン（既存プロジェクトのリージョンに合わせる。例: eastus2）
    azd env set AZURE_LOCATION "eastus2"
 
    # プロジェクトのリソース ID（Hosted Agent の登録先。endpoint だけでは解決できないので必須）
-   azd env set AZURE_AI_PROJECT_ID "/subscriptions/<サブスクリプション ID>/resourceGroups/<RG名>/providers/Microsoft.CognitiveServices/accounts/<アカウント名>/projects/<プロジェクト名>"
+   azd env set AZURE_AI_PROJECT_ID "/subscriptions/d1bf4d07-2dac-43a8-9060-4d5274fc7e33/resourceGroups/rg-foundryobs-eastus2/providers/Microsoft.CognitiveServices/accounts/aif-foundryobs-jyenh/projects/proj-foundryobs-jyenh"
 
    # プロジェクト エンドポイント（カスタム サブドメイン ホストであること）
-   azd env set FOUNDRY_PROJECT_ENDPOINT "https://<カスタムサブドメイン>.services.ai.azure.com/api/projects/<プロジェクト名>"
+   azd env set FOUNDRY_PROJECT_ENDPOINT "https://foundryobsjyenh.services.ai.azure.com/api/projects/proj-foundryobs-jyenh"
 
    # モデル デプロイ名（既存プロジェクトにデプロイ済みのもの）
    azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME "gpt-5.4-mini"
