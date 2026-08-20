@@ -39,6 +39,14 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
 ## 事前準備
 - **Azure Developer CLI（azd）1.27.1 以上**。`azd ai agent` コマンド群が使えること（`azd version` で確認）。**VS Code の Foundry Toolkit 拡張機能は今回は使いません**（本手順は CLI だけで完結します）。
+
+  未導入の場合は次でインストールします（導入済みならスキップ）:
+
+  ```powershell
+  winget install microsoft.azd
+  ```
+
+  > **（注）** インストール後は VS Code / ターミナルを開き直して `azd version` が表示されることを確認してください。
 - **Python 3.11 以上**（GA ランタイムのビルドに使用）。
 - **既存の Foundry プロジェクトに対して `Foundry Project Manager` ロール**を持っていること（Hosted Agent の登録＝データプレーン操作に必要）。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定するため、`azd provision` は**新規プロジェクトを作らず既存プロジェクトへ接続するだけ**になります（詳細は C 節参照）。
 - **Azure へのサインイン**（未サインインの場合）。`azd`・`az` はいずれも Azure 認証が必要です。まず次でサインインしておきます（ブラウザーが開きます）:
@@ -287,15 +295,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
 デプロイは `azd` を使います。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定すると、**`azd provision` は新規プロジェクトを作らず既存プロジェクトへ接続**します。その後 `azd deploy` で Hosted Agent を登録します。
 
-1. **azd をインストール**（未導入の場合。導入済みならスキップ）。
-
-   ```powershell
-   winget install microsoft.azd
-   ```
-
-   > **（注）** インストール後は VS Code / ターミナルを開き直して `azd version` が表示されることを確認してください。
-
-2. **プロジェクト ルートへ移動**して azd 環境を作る。
+1. **プロジェクト ルートへ移動**して azd 環境を作る。
 
    ```powershell
    # ひな形のルート（azure.yaml がある階層）へ移動
@@ -303,7 +303,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    azd env new handson-hosted-userNN                        # userNN は自分の番号（例: handson-hosted-user01）
    ```
 
-3. **プロジェクト エンドポイントとモデル デプロイ名を設定**する。
+2. **プロジェクト エンドポイントとモデル デプロイ名を設定**する。
 
    ```powershell
    # プロジェクト エンドポイント（カスタム サブドメイン ホストであること）
@@ -315,7 +315,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    > **（重要・エンドポイントの落とし穴）** `FOUNDRY_PROJECT_ENDPOINT` のホストは **カスタム サブドメイン**（例: `foundryobsjyenh.services.ai.azure.com`）である必要があります。**リソース名そのまま**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）だと DNS 解決できず失敗します。ポータルの「プロジェクト エンドポイント」に表示される値をそのまま使ってください。
 
-4. **`azure.yaml` を既存プロジェクト接続用に編集**する。`ai-project` サービスに `endpoint` を追加し、**新規モデルを作らないよう `deployments` ブロックを削除**します（既存プロジェクトには使用するモデルが既にデプロイ済みのため）。
+3. **`azure.yaml` を既存プロジェクト接続用に編集**する。`ai-project` サービスに `endpoint` を追加し、**新規モデルを作らないよう `deployments` ブロックを削除**します（既存プロジェクトには使用するモデルが既にデプロイ済みのため）。
 
    > **（init で `Skip this model entirely` を選んだ場合）** A 節のモデル取り扱いプロンプトで **`Skip this model entirely (remove from azure.yaml)`** を選んでいれば、**`deployments` ブロックは既に除去済み**です。その場合は下記の**削除は不要**で、**`endpoint` の追加とサービス名のリネームだけ**を行ってください（念のため `deployments` が残っていないか確認）。
 
@@ -357,7 +357,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    >
    > **（`deployments` を残す場合）** 既存プロジェクトの `gpt-5.4-mini` に合わせるなら、`name` / `model.name` を `gpt-5.4-mini`、`version` を実デプロイのバージョンに合わせます。バージョンが不明なときは削除版が確実です。
 
-5. **プロビジョニング（既存プロジェクトへ接続）してからデプロイ**する。
+4. **プロビジョニング（既存プロジェクトへ接続）してからデプロイ**する。
 
    ```powershell
    # 既存プロジェクトへ接続（endpoint 設定済みなので新規プロジェクトは作られない）
@@ -369,7 +369,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    > **（注）** `endpoint` を設定しているため `azd provision` は**新規 Foundry プロジェクト/モデルを作成せず既存プロジェクトへ接続**します（プロジェクト接続は provision フェーズ、Agent 登録は deploy フェーズで適用されます）。`azd up` でまとめて実行してもかまいません。リモート ビルドで `requirements.txt` から GA パッケージが解決されるため、ローカルに Docker が無くてもデプロイできます。
 
-6. **動作確認**する。
+5. **動作確認**する。
 
    ```powershell
    # 呼び出し
