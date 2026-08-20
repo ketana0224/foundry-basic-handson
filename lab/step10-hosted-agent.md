@@ -48,7 +48,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
   > **（注）** インストール後は VS Code / ターミナルを開き直して `azd version` が表示されることを確認してください。
 - **Python 3.11 以上**（GA ランタイムのビルドに使用）。
-- **既存の Foundry プロジェクトに対して `Foundry Project Manager` ロール**を持っていること（Hosted Agent の登録＝データプレーン操作に必要）。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定するため、`azd up` は**新規プロジェクトを作らず既存プロジェクトへ接続するだけ**になります（詳細は C 節参照）。
+- **既存の Foundry プロジェクトに対して `Foundry Project Manager` ロール**を持っていること（Hosted Agent の登録＝データプレーン操作に必要）。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定するため、`azd deploy` は**新規プロジェクトを作らず既存プロジェクトへ接続するだけ**になります（詳細は C 節参照）。
 - **Azure へのサインイン**（未サインインの場合）。`azd`・`az` はいずれも Azure 認証が必要です。まず次でサインインしておきます（ブラウザーが開きます）:
 
   ```powershell
@@ -291,7 +291,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
 ### C. Hosted Agent としてデプロイする
 
-デプロイは `azd` を使います。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定すると、**新規プロジェクトを作らず既存プロジェクトへ接続**します。`azd up` でプロビジョニング（接続）とデプロイ（Hosted Agent 登録）をまとめて実行します。
+デプロイは `azd` を使います。`azure.yaml` の `ai-project` に既存プロジェクトの `endpoint` を設定すると、**新規プロジェクトを作らず既存プロジェクトへ接続**します。`azd deploy` で既存プロジェクトへの接続と Hosted Agent 登録を実行します。
 
 1. **プロジェクト ルートへ移動**して azd 環境を作る。
 
@@ -320,11 +320,11 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
    azd env set AZURE_AI_MODEL_DEPLOYMENT_NAME "gpt-5.4-mini"
    ```
 
-   > **（重要・空環境の落とし穴）** 手順 1 の `azd env new` は**空の新規環境**を作ります。`AZURE_SUBSCRIPTION_ID` がないと `ERROR: AZURE_SUBSCRIPTION_ID is required ...`、`AZURE_AI_PROJECT_ID` がないと `ERROR: Microsoft Foundry project ID is required: AZURE_AI_PROJECT_ID is not set` で `azd up` が失敗します。**必ず上記 5 つをすべて設定**してください（`azd env get-values` で現在値を確認できます）。
+   > **（重要・空環境の落とし穴）** 手順 1 の `azd env new` は**空の新規環境**を作ります。`AZURE_SUBSCRIPTION_ID` がないと `ERROR: AZURE_SUBSCRIPTION_ID is required ...`、`AZURE_AI_PROJECT_ID` がないと `ERROR: Microsoft Foundry project ID is required: AZURE_AI_PROJECT_ID is not set` で `azd deploy` が失敗します。**必ず上記 5 つをすべて設定**してください（`azd env get-values` で現在値を確認できます）。
    >
    > **（`AZURE_AI_PROJECT_ID` の形式）** `/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<アカウント>/projects/<プロジェクト>` です。値が不明なときは Foundry ポータルのプロジェクト概要、または `az cognitiveservices account show` で確認できます。
 
-   > **（重要・エンドポイントの落とし穴）** `FOUNDRY_PROJECT_ENDPOINT` のホストは **カスタム サブドメイン**（例: `foundryobsjyenh.services.ai.azure.com`）である必要があります。**リソース名そのまま**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）だと DNS 解決できず失敗します。ポータルの「プロジェクト エンドポイント」に表示される値をそのまま使ってください。
+   > **（重要・エンドポイントの落とし穴／`no such host` の原因）** `FOUNDRY_PROJECT_ENDPOINT` のホストは **カスタム サブドメイン**（例: `foundryobsjyenh.services.ai.azure.com`）である必要があります。**リソース名そのまま**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）だと `azd deploy` の Agent 登録が `dial tcp: lookup aif-foundryobs-jyenh.services.ai.azure.com: no such host` で失敗します。`azd deploy` はこの `FOUNDRY_PROJECT_ENDPOINT` のホストへ `/api/projects/<プロジェクト>/agents/...` を叩くため、**ここを間違えると DNS 解決できません**。ポータルの「プロジェクト エンドポイント」に表示される値（カスタム サブドメイン）をそのまま使ってください。
 
 3. **`azure.yaml` を既存プロジェクト接続用に編集**する。`ai-project` サービスに `endpoint` を追加し、**新規モデルを作らないよう `deployments` ブロックを削除**します（既存プロジェクトには使用するモデルが既にデプロイ済みのため）。
 
@@ -364,20 +364,18 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    > **（重要・エージェント名の一意化）** `azure.ai.agent` の**サービス名（キー）が、共有プロジェクト上のエージェント名**になります。ひな形の既定名（例: `agent-framework-agent-basic-responses`）のままだと他の受講者と衝突するため、上のように **`userNN` を含む一意名にリネーム**してください（英小文字・数字・`-` のみ）。
 
-   > **（なぜ）** `azure.ai.project` の `endpoint` を設定すると、`azd` は**新規プロジェクトを作らず、その既存プロジェクトへ接続**します（省略すると新規作成）。ただし **Hosted Agent の登録先を確定させるには、手順 2 で設定した `AZURE_AI_PROJECT_ID`（プロジェクトのリソース ID）が必要**です（`endpoint` だけでは `azd up` が `AZURE_AI_PROJECT_ID is not set` で止まります）。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/azure-yaml-reference>
+   > **（なぜ）** `azure.ai.project` の `endpoint` を設定すると、`azd` は**新規プロジェクトを作らず、その既存プロジェクトへ接続**します（省略すると新規作成）。ただし **Hosted Agent の登録先を確定させるには、手順 2 で設定した `AZURE_AI_PROJECT_ID`（プロジェクトのリソース ID）が必要**です（`endpoint` だけでは `azd deploy` が `AZURE_AI_PROJECT_ID is not set` で止まります）。出典: <https://learn.microsoft.com/azure/foundry/agents/concepts/azure-yaml-reference>
    >
    > **（`deployments` を残す場合）** 既存プロジェクトの `gpt-5.4-mini` に合わせるなら、`name` / `model.name` を `gpt-5.4-mini`、`version` を実デプロイのバージョンに合わせます。バージョンが不明なときは削除版が確実です。
 
-4. **`azd up` でプロビジョニングとデプロイをまとめて実行**する。
+4. **`azd deploy` でデプロイ**する。
 
    ```powershell
-   # 既存プロジェクトへ接続（provision）＋ Hosted Agent 登録（deploy）を一括実行
-   azd up
+   # 既存プロジェクトへ接続し Hosted Agent を登録
+   azd deploy
    ```
 
-   > **（重要・provision と deploy を分けない）** 既存プロジェクト接続（bicep-less）では `azd provision` は**新規に作るリソースが無い**ため一瞬で成功します（`provisioned ... in less than a second` は正常）。ところが `azd provision` と `azd deploy` を**別々に**実行すると、bicep-less 環境では provision の完了状態が記録されず、直後の `azd deploy` が `ERROR: infrastructure has not been provisioned` と**誤判定**します。**`azd up` でまとめて実行**すればこの問題を回避できます。
-   >
-   > **（注）** `endpoint` を設定しているため `azd up` は**新規 Foundry プロジェクト/モデルを作成せず既存プロジェクトへ接続**します（プロジェクト接続は provision フェーズ、Agent 登録は deploy フェーズで適用されます）。リモート ビルドで `requirements.txt` から GA パッケージが解決されるため、ローカルに Docker が無くてもデプロイできます。
+   > **（注）** `endpoint` を設定しているため `azd deploy` は**新規 Foundry プロジェクト/モデルを作成せず既存プロジェクトへ接続**します。リモート ビルドで `requirements.txt` から GA パッケージが解決されるため、ローカルに Docker が無くてもデプロイできます。`ai-project` が `Done`、Agent サービスが `Done` になれば成功です。
 
 5. **動作確認**する。
 
@@ -391,7 +389,7 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
    デプロイ後は **Foundry ポータルの Playground** からも同じ Hosted Agent を選んで会話できます。
 
-> **（補足）** ここまでが CLI だけで完結する Hosted Agent デプロイの全体像です（`azd ai agent init` → `main.py`/`requirements.txt` を GA 版へ → `azure.yaml` の `ai-project` に `endpoint` を設定 → 環境変数（`AZURE_SUBSCRIPTION_ID`/`AZURE_LOCATION`/`AZURE_AI_PROJECT_ID`/`FOUNDRY_PROJECT_ENDPOINT`/`AZURE_AI_MODEL_DEPLOYMENT_NAME`）を設定 → `azd up`）。
+> **（補足）** ここまでが CLI だけで完結する Hosted Agent デプロイの全体像です（`azd ai agent init` → `main.py`/`requirements.txt` を GA 版へ → `azure.yaml` の `ai-project` に `endpoint` を設定 → 環境変数（`AZURE_SUBSCRIPTION_ID`/`AZURE_LOCATION`/`AZURE_AI_PROJECT_ID`/`FOUNDRY_PROJECT_ENDPOINT`/`AZURE_AI_MODEL_DEPLOYMENT_NAME`）を設定 → `azd deploy`）。
 
 ## トラブルシュート
 
@@ -428,11 +426,17 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 
 ### 症状 E: `ERROR: AZURE_SUBSCRIPTION_ID is required ...` / `ERROR: Microsoft Foundry project ID is required: AZURE_AI_PROJECT_ID is not set`
 - **原因**: `azd env new` で作った**空の新規環境**にサブスクリプション/リージョン/プロジェクト ID が入っていない。
-- **対処**: C 節の手順 2 で `AZURE_SUBSCRIPTION_ID` / `AZURE_LOCATION` / `AZURE_AI_PROJECT_ID` を `azd env set` する。`AZURE_AI_PROJECT_ID` は `/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<アカウント>/projects/<プロジェクト>` 形式。`azd env get-values` で 5 つ（上記＋`FOUNDRY_PROJECT_ENDPOINT`/`AZURE_AI_MODEL_DEPLOYMENT_NAME`）が入っていることを確認してから `azd up`。
+- **対処**: C 節の手順 2 で `AZURE_SUBSCRIPTION_ID` / `AZURE_LOCATION` / `AZURE_AI_PROJECT_ID` を `azd env set` する。`AZURE_AI_PROJECT_ID` は `/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<アカウント>/projects/<プロジェクト>` 形式。`azd env get-values` で 5 つ（上記＋`FOUNDRY_PROJECT_ENDPOINT`/`AZURE_AI_MODEL_DEPLOYMENT_NAME`）が入っていることを確認してから `azd deploy`。
 
-### 症状 F: `azd deploy` が `ERROR: infrastructure has not been provisioned`（`azd provision` は成功しているのに）
-- **原因**: 既存プロジェクト接続（bicep-less）では `azd provision` は一瞬で終わり（`provisioned ... in less than a second`）、provision と deploy を**別々に**実行すると完了状態が記録されず deploy が誤判定する。
-- **対処**: `azd provision` → `azd deploy` と分けず、**`azd up` でまとめて実行**する（C 節手順 4）。
+### 症状 F: `dial tcp: lookup aif-... : no such host`（Agent 登録が `create_agent: HTTP request failed`）
+- **原因**: `FOUNDRY_PROJECT_ENDPOINT` のホストが**リソース名そのまま**（例: `aif-foundryobs-jyenh.services.ai.azure.com`）になっている。このホストは DNS 解決できず、`azd deploy` の Agent 登録先 URL が引けない。
+- **対処**: ホストを**カスタム サブドメイン**（例: `foundryobsjyenh.services.ai.azure.com`）に直す。ポータルの「プロジェクト エンドポイント」に表示される値をそのまま使う。
+
+  ```powershell
+  azd env set FOUNDRY_PROJECT_ENDPOINT "https://<カスタムサブドメイン>.services.ai.azure.com/api/projects/<プロジェクト名>"
+  azd env get-values   # FOUNDRY_PROJECT_ENDPOINT のホストが aif-... でないことを確認
+  azd deploy
+  ```
 
 ### 切り分けのコツ
 - **起動できない**（Playground/`invoke` が返らない）→ 症状 A（パッケージ）を疑う。まず Echo 版に差し替えて「モデル無しで起動するか」を確認する。
@@ -443,14 +447,14 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 デプロイまで到達できなくても問題ありません。**「コードで書いた Agent を GA パッケージだけで Hosted に載せられる」** という流れを理解できれば十分です。ローカルの `python main.py` + `curl POST /responses` で疎通確認できたら、この Step のねらいは達成です。
 
 ## メニュー名・プロンプトが違うときは
-`azd`（特に `azd ai agent`）はプレビュー〜更新が続いており、対話プロンプトの文言や選択肢名が変わることがあります。表示が異なる場合は近い名称（`azd ai agent init` / `azd up`）を選んでください。コア概念（**GA ランタイム `azure-ai-agentserver-responses` を、`ai-project` の `endpoint` で既存プロジェクトへ接続し `azd up` で登録**）は同じです。
+`azd`（特に `azd ai agent`）はプレビュー〜更新が続いており、対話プロンプトの文言や選択肢名が変わることがあります。表示が異なる場合は近い名称（`azd ai agent init` / `azd deploy`）を選んでください。コア概念（**GA ランタイム `azure-ai-agentserver-responses` を、`ai-project` の `endpoint` で既存プロジェクトへ接続し `azd deploy` で登録**）は同じです。
 
 ## 完了チェック
 - [ ] `requirements.txt` を GA 版（`azure-ai-agentserver-responses>=2.0.0`）に差し替えた。
 - [ ] `main.py` を GA 版（`ResponsesAgentServerHost` + `@app.response_handler`）に差し替えた。
 - [ ] `.venv` で `pip install -r requirements.txt`（`--pre` なし）が成功した。
 - [ ] ローカルで `python main.py` を起動し、`POST /responses` が応答した。
-- [ ]（任意）`azure.yaml` の `ai-project` に `endpoint` を設定し、`azd up` で既存プロジェクトに登録して、`azd ai agent invoke` / Playground で応答を確認した。
+- [ ]（任意）`azure.yaml` の `ai-project` に `endpoint` を設定し、`azd deploy` で既存プロジェクトに登録して、`azd ai agent invoke` / Playground で応答を確認した。
 
 ---
 
