@@ -349,9 +349,14 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 4. **`azd deploy` でデプロイ**する。
 
    ```powershell
+   # azure.yaml があるプロジェクト ルート（src の 1 つ上）に戻ってから実行する
+   cd $env:USERPROFILE\AIFoundryProjects\agent-framework-agent-basic-responses
+
    # 既存プロジェクトへ接続し Hosted Agent を登録
    azd deploy
    ```
+
+   > **（重要・実行フォルダ）** `azd deploy` は**カレント ディレクトリの `azure.yaml` を読み込む**ため、必ず **`azure.yaml` があるプロジェクト ルート**（`src` フォルダーの **1 つ上**）で実行してください。`src` の中に入ったまま実行すると `azure.yaml` が見つからずエラーになります。`ls azure.yaml` でファイルの存在を確認してから `azd deploy` を実行すると確実です。
 
    > **（注）** `endpoint` を設定しているため `azd deploy` は**新規 Foundry プロジェクト/モデルを作成せず既存プロジェクトへ接続**します。リモート ビルドで `requirements.txt` から GA パッケージが解決されるため、ローカルに Docker が無くてもデプロイできます。`ai-project` が `Done`、Agent サービスが `Done` になれば成功です。
 
