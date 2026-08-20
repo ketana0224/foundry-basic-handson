@@ -359,12 +359,14 @@ Step 3〜8 では、ポータル上で Agent を作り、ツール・ナレッ�
 5. **動作確認**する。
 
    ```powershell
-   # 呼び出し
-   azd ai agent invoke -p "こんにちは。自己紹介してください。"
+   # 呼び出し（メッセージは位置引数で渡す。-p は不可）
+   azd ai agent invoke "こんにちは。自己紹介してください。"
 
    # ログをリアルタイムで見る（別ターミナル推奨）
    azd ai agent monitor --follow
    ```
+
+   > **（注）** メッセージは**位置引数**で渡します。`-p "..."` を付けると `ERROR: a message argument or --input-file is required` になります。ファイルから渡す場合のみ `--input-file`（`-f`）を使います。
 
    デプロイ後は **Foundry ポータルの Playground** からも同じ Hosted Agent を選んで会話できます。
 
