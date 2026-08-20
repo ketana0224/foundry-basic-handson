@@ -33,10 +33,10 @@
 ### トレース
 - **トレースが出ない** → 反映に数秒〜数十秒。少し待って再読み込み。
 
-### Hosted Agent（Step 10・発展）
-- **起動できない**（`session_not_ready` ＋ ログに `ModuleNotFoundError: No module named 'agent_framework_foundry_hosting'`）→ `requirements.txt` に **`agent-framework-foundry-hosting` が入っていない**のが原因。この行を追加して再デプロイする。**`azure-ai-agentserver-*` を `==2.0.0` に手で固定しないこと**（hosting が `>=2.1.0b1` を要求し衝突する）。詳細は [Step 10 のトラブルシュート](step10-hosted-agent.md#症状-a起動できないmodulenotfounderror-no-module-named-agent_framework_foundry_hosting) を参照。
-- **起動は成功するが Playground 実行時に失敗する**（ログに `store=True` / `Resilient task subsystem missing ...`）→ hosting が要求する beta 版 `azure-ai-agentserver-*`（2.1.0b\*）側の挙動。GA `==2.0.0` への固定では回避できない（hosting と両立不能）。詳細は [Step 10 のトラブルシュート](step10-hosted-agent.md#症状-b起動は成功するが-playground-実行時に失敗するstoretrue--resilient-task-subsystem-missing) を参照。
-- `ModuleNotFoundError: No module named 'agents'`（末尾が `agents`）は**無害**（任意の A365 計装が無いだけ）。`agent_framework_foundry_hosting`（起動失敗）とは別物。`main.py` の `default_options={"store": False}` は別レイヤーの既定値で、この失敗は直らない。
+### Hosted Agent（Step 10・発展 / GA 構成）
+- **起動できない**（`invoke`／Playground が返らない ＋ ログに `ModuleNotFoundError: No module named 'azure.ai.agentserver'`）→ `requirements.txt` に **`azure-ai-agentserver-responses>=2.0.0` が入っていない**（GA 版への差し替え漏れ）か、`.venv` を有効化していないのが原因。GA 内容に直して `pip install -r requirements.txt`（`--pre` 不要）→ 再デプロイ。詳細は [Step 10 のトラブルシュート](step10-hosted-agent.md#症状-a-デプロイ起動が失敗するmodulenotfounderror-no-module-named-azureaiagentserver) を参照。
+- **起動は成功するが実行時にモデル呼び出しが 401 / 403**（`PermissionDenied` / `access denied`）→ Hosted Agent の Instance Identity（マネージド ID）に **`Cognitive Services OpenAI User` ロールが無い**のが原因。Foundry アカウント スコープで付与し、`main.py` を軽微変更して `azd deploy` で再ビルド（トークン キャッシュ更新）。詳細は [Step 10 のトラブルシュート](step10-hosted-agent.md#症状-b-実行時にモデル呼び出しが-401--403permissiondenied--access-denied) を参照。
+- `ModuleNotFoundError: No module named 'agents'`（末尾が `agents`）は**無害**（任意の A365 計装が無いだけ）。**問題は `azure.ai.agentserver`（末尾 `agentserver`）を解決できないケース**で、両者は別物。
 
 ## 発展課題（時間が余ったら）
 1. instructions を工夫して、回答の丁寧さ・出典明示のルールを強化する。
